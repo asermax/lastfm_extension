@@ -125,13 +125,12 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         #activar/desactivar la funcionalidad cuando sea necesario
         self.playcount_id = None
         self.settings.connect( 'changed::%s' % Keys.PLAY_COUNT,
-                                               self.connect_playcount )
+                                self.connect_playcount )
                                               
         #conectamos una señal con la setting de loved para activar/desactivar
         #la funcionalidad cuando sea necesario
         self.loved_id = None
-        self.settings.connect( 'changed::%s' % Keys.LOVED,
-        									   self.connect_loved )        
+        self.settings.connect( 'changed::%s' % Keys.LOVED, self.connect_loved )        
         
         #inicializamos la network si estan los datos disponibles
         self.conection_changed( self.settings, Keys.CONNECTED )           
@@ -219,7 +218,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         #si la opcion esta habilitada, conectamos la señal
         if settings[key] and self.settings[Keys.CONNECTED]:
             self.playcount_id = self.player.connect( 'playing-changed', 
-            								  self.playcount_updater )
+                                                     self.playcount_updater )
         #sino, quitamos la señal
         elif self.playcount_id:
             self.player.disconnect( self.playcount_id )
@@ -246,8 +245,8 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
     def connect_loved( self, settings, key ):
 		#si la opcion esta habilitada, conectamos la señal
         if settings[key] and self.settings[Keys.CONNECTED]:
-            self.loved_id = self.player.connect( 'playing-changed', 
-            								  self.loved_updater )
+            self.loved_id = self.player.connect( 'playing-changed',
+                                                 self.loved_updater )
         #sino, quitamos la señal
         elif self.loved_id:
             self.player.disconnect( self.loved_id )
