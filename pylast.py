@@ -3,6 +3,7 @@
 # pylast - A Python interface to Last.fm (and other API compatible social networks)
 #
 # Copyright 2008-2010 Amr Hassan
+# Copyright 2012 Carrasco Agustin
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
