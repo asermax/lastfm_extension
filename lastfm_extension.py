@@ -243,7 +243,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         if playcount and old_playcount < playcount:
             self.db.entry_set( entry, RB.RhythmDBPropType.PLAY_COUNT, playcount )  
             
-	def connect_loved( self, settings, key ):
+    def connect_loved( self, settings, key ):
 		#si la opcion esta habilitada, conectamos la señal
         if settings[key] and self.settings[Keys.CONNECTED]:
             self.loved_id = self.player.connect( 'playing-changed', 
