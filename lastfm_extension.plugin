@@ -7,4 +7,4 @@ Depends=rb
 Description=Extends the functionality of rhythmbox in relation with Last.fm, allowing the player to love/ban songs, synchronize loved tracks and track's playcount with the user account.
 Authors=Carrasco Agustin <asermax@gmail.com>
 Copyright=GNUv3 ~ Agustin Carrasco
-Website=http://www.rhythmbox.org/
+Website=https://github.com/asermax/lastfm_extension
