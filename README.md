@@ -9,6 +9,6 @@ Also, you have the option to activate:
 
 ================
 
-To install, just execute the install.sh script (this will install the plugin locally, it will only be avaible for the current user).
+To install, just execute the install.sh script (this will install the plugin locally, it will only be available for the current user).
 
 
