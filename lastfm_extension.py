@@ -181,6 +181,9 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
 
     def love_track( self, action ):
         entry, track = self.get_track()
+        
+        if not entry or not track:
+        	return
                 
         #armamos el titulo y mensaje de la notificacion
         titulo = 'Loved track'
@@ -209,7 +212,8 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         	   lambda _, title, text: notify( title, text),
                titulo, texto )()
         
-        
+        #bonus: ponemos 0 estrellas al track
+        self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 0)       
 
     def enable_buttons( self, enable ):
         self.action_group.set_property( 'sensitive', enable )           	
