@@ -1,10 +1,10 @@
 lastfm_extension - Rhythmbox&#39;s LastFM Extension Plugin
-================
+----------------
 
 This plugin adds the love and ban buttons to your Rhythmbox toolbar again!
-----------------
+================
 Whenever you love a track, it will also be marked with 5 stars on the player, and whenever you ban a track, it's ranking will be reseted to 0. I can't assure what will happen if you ban an already loved track (or viceversa), since for some reason LastFM allows you to love and ban a track at the same time.
-----------------
+================
 It currently doesn't support Unloving or Unbaning tracks (the LastFM API haven't implemented this feature yet).
 
 Also, you have the option to activate:
