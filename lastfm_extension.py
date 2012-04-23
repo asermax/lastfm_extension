@@ -243,7 +243,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
     	#get current playcount     	      
         old_playcount = entry.get_ulong( RB.RhythmDBPropType.PLAY_COUNT )
                 
-        if playcount and old_playcount < playcount:
+        if playcount and type(playcount) is int and old_playcount < playcount:
             self.db.entry_set( entry, RB.RhythmDBPropType.PLAY_COUNT, playcount )  
             
     def connect_loved( self, settings, key ):
