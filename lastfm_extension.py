@@ -206,7 +206,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         #armamos el titulo y mensaje de la notificacion
         titulo = 'Banned track'
         texto = 'You just marked the track %s - %s as banned' % \
-              ( track.get_title(), track.get_artist() )
+              ( track.get_title().encode('utf-8'), track.get_artist() )
 
         async( track.ban,
         	   lambda _, title, text: notify( title, text),
