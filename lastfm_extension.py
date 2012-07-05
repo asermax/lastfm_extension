@@ -188,7 +188,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         #armamos el titulo y mensaje de la notificacion
         titulo = 'Loved track'
         texto = 'You just marked the track %s - %s as loved' % \
-              ( track.get_title(), track.get_artist() )
+              ( track.get_title().encode('utf-8'), track.get_artist() )
 
         async( track.love,
                lambda _, title, text: notify( title, text),
