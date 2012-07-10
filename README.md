@@ -15,6 +15,9 @@ Installation
 -----------
 
 To install, just execute the install.sh script (this will install the plugin locally, it will only be available for the current user).
+The installation script will ask for admin password to install the glib-schema used to save the plugin settings.
+
+TODO: enable global installation (for all users).
 
 Use
 ---
