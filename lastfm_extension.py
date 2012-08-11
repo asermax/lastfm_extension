@@ -184,36 +184,48 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         
         if not entry or not track:
         	return
+
+        async( track.love, self.track_loved, track, entry )()              
                 
-        #armamos el titulo y mensaje de la notificacion
-        titulo = 'Loved track'
-        texto = 'You just marked the track %s - %s as loved' % \
+    def track_loved( self, result, track, entry ):
+        #mostramos un mensaje diferente segun el resultado
+        if isinstance( result, Exception ):
+            titulo = 'Failed to love track'
+            texto = 'There was an error in the connection while ' + \
+                    'trying to mark the track as loved.'
+        else:
+            titulo = 'Loved track'
+            texto = 'You just marked the track %s - %s as loved' % \
               ( track.get_title().encode('utf-8'), track.get_artist() )
-
-        async( track.love,
-               lambda _, title, text: notify( title, text),
-               titulo, texto )()
-               
+              
+        notify( titulo, texto )
+        
         #bonus: ponemos 5 estrellas al track
-        self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)        	
-
+        self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)   
+        
     def ban_track( self, action ):
         entry, track = self.get_track()
         
         if not entry or not track:
         	return
 
-        #armamos el titulo y mensaje de la notificacion
-        titulo = 'Banned track'
-        texto = 'You just marked the track %s - %s as banned' % \
+        async( track.ban, self.track_banned, track, entry )()  
+        
+    def track_banned( self, result, track, entry ):
+        #mostramos un mensaje diferente segun el resultado
+        if isinstance( result, Exception ):
+            titulo = 'Failed to ban track'
+            texto = 'There was an error in the connection while ' + \
+                    'trying to mark the track as banned.'
+        else:
+            titulo = 'Banned track'
+            texto = 'You just marked the track %s - %s as banned' % \
               ( track.get_title().encode('utf-8'), track.get_artist() )
-
-        async( track.ban,
-        	   lambda _, title, text: notify( title, text),
-               titulo, texto )()
+              
+        notify( titulo, texto )
         
         #bonus: ponemos 0 estrellas al track
-        self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 0)       
+        self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 0)     
 
     def enable_buttons( self, enable ):
         self.action_group.set_property( 'sensitive', enable )           	
