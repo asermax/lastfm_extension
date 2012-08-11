@@ -24,4 +24,10 @@ Use
 
 This plugin uses pylast (http://code.google.com/p/pylast/) as interface with LastFM and it doesn't depends on the default Rhythmbox's LastFM plugin. Thus, you have to login separately, going to the plugin's Preferences dialog, where you can also specify if you want to sync playcount and loved tracks with your account.
 
+Contact
+------
+You can let me know of any bugs or new features you want to see implemented through this repository's issue tracker.
+Also, feel free to contact me at my personal email account: asermax at gmail dot com.
+And if you feel really friendly, at me on LastFM! My user over there is also asermax :]
+
 
