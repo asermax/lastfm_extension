@@ -267,8 +267,8 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
     	#obtenemos el loved asincronamente
     	async( track.is_loved, self.update_loved, entry )()   
         
-    def update_loved( self, loved, entry ):
-    	if loved:
+    def update_loved( self, loved, entry ):        
+    	if type(loved) is bool and loved:
     		self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)   	      
             
     def conection_changed( self, settings, key ):
