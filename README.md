@@ -29,6 +29,6 @@ Contact
 You can let me know of any bugs or new features you want to see implemented through this repository's issue tracker.
 Also, feel free to contact me at my personal email account: asermax at gmail dot com.
 
-And if you feel really friendly, at me on LastFM! My user over there is also asermax :]
+And if you feel really friendly, add me on LastFM! My user over there is also asermax :]
 
 
