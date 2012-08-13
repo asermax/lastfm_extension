@@ -63,7 +63,7 @@
         </child>
         <child>
             <object class="GtkCheckButton" id="checkbuttonLoved">
-                <property name="label" translatable="yes">Activate loved trakcs Sync?</property>
+                <property name="label" translatable="yes">Activate loved tracks Sync?</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
