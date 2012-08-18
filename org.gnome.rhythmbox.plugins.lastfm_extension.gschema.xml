@@ -16,6 +16,11 @@
             <summary>If the loved tracks should be synced or not.</summary>
             <description>Determines if the loved tracks on Last.fm should be synced (marked with 5 stars) on rhythmbox.</description>
         </key>
+        <key type="b" name="fingerprinter-active">
+            <default>false</default>
+            <summary>If the fingerprinter should be enabled.</summary>
+            <description>Determines if the fingerprinter module should be enabled and avaible for it's use on the application.</description>
+        </key>
         <key type="b" name="connected">
             <default>false</default>
             <summary>If the plugin is connected with LastFM or not.</summary>
