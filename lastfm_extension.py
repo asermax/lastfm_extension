@@ -102,7 +102,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         self.ui_id = manager.add_ui_from_string( ui_str )
 
         #disableamos los botones
-        self.enable_buttons( False )
+        self.enable_buttons( player.get_playing_entry(), self.settings ) 
 
         #updateamos la ui
         manager.ensure_update()        
@@ -116,7 +116,8 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         #conectamos la señal playing_changed para activar o desactivar
         #los botones de love/ban
         self.benable_id = player.connect( 'playing-changed', lambda sp, playing: 
-              self.enable_buttons( playing and self.settings[Keys.CONNECTED] ) )
+              self.enable_buttons( self.player.get_playing_entry(), 
+                                   self.settings ) )
               
         #conectamos la señal para conectar o desconectar
         self.settings.connect( 'changed::connected', self.conection_changed )      
@@ -227,8 +228,10 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         #bonus: ponemos 0 estrellas al track
         self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 0)     
 
-    def enable_buttons( self, enable ):
-        self.action_group.set_property( 'sensitive', enable )           	
+    def enable_buttons( self, entry, settings ):
+        enable = settings[Keys.CONNECTED] and entry is not None
+    
+        self.action_group.set_property( 'sensitive', enable )      	
 
     def connect_playcount( self, settings, key ):
         #si la opcion esta habilitada, conectamos la señal
