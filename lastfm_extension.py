@@ -333,7 +333,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         try:
             if settings[key]:            
                 #creamos el fingerprinter
-                self.fingerprinter = Fingerprinter()
+                self.fingerprinter = Fingerprinter( self )
             
                 #agregamos la action para el fingerprinter
                 self.finger_action_group = Gtk.ActionGroup( 
@@ -370,7 +370,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             pass
             
     def fingerprint_song( self, action ):
-        pass 	      
+        self.fingerprinter.show_dialog() 	      
             
     def conection_changed( self, settings, key ):
         if settings[key]:

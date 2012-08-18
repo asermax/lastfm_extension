@@ -22,10 +22,14 @@ try:
 except:
     raise LastFMFingerprintException( 'LastFM fingerprint library not found.' )
 
-from gi.repository import Gio
+from gi.repository import Gio, RB, Gtk
+import rb
 
 import LastFMExtensionKeys as Keys
 from LastFMExtensionUtils import asynchronous_call as async
+
+DIALOG_BUILDER_FILE = 'lastfmExtensionFingerprintDialog.glade'
+DIALOG_NAME = 'song-selection-dialog'
 
 ui_context_menu = """
 <ui>
@@ -44,14 +48,12 @@ ui_context_menu = """
 	     <menuitem name="FingerprintSong" action="FingerprintSong"/>
      </placeholder>
   </popup>
-
   <popup name="PodcastViewPopup">
      <placeholder name="PluginPlaceholder">
 	     <menuitem name="FingerprintSong" action="FingerprintSong"/>
      </placeholder>
   </popup>
 </ui>
-
 """
 
 class LastFMFingerprintException( Exception ):
@@ -60,8 +62,32 @@ class LastFMFingerprintException( Exception ):
         
 class LastFMFingerprinter:
     
-    def __init__( self ):
+    def __init__( self, plugin ):
         self.settings = Gio.Settings.new( Keys.PATH )
+        
+        #load the dialog builder file
+        self.builder_file = rb.find_plugin_file( plugin, DIALOG_BUILDER_FILE )
+        
+    def fingerprint( self, entry ):
+        #show the fingerprinter dialog
+        self.show_dialog()
+        
+    def show_dialog( self ):
+        #creamos un builder y agregamos el archivo de gui
+        _builder = Gtk.Builder()
+        _builder.add_from_file( self.builder_file )
+		
+		#conectamos las señales
+		_builder.connect_signals( self )
+		
+		#mostramos el dialog
+		_builder.get_object( DIALOG_NAME ).present()
+        
+    def close_fingerprinter_window( self, dialog ):
+        dialog.destroy()
+        
+    def save_selected( self, _ ):
+        pass
 
     
     

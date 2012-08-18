@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkAction" id="actionClose">
+    <property name="tooltip" translatable="yes">Close the window</property>
+    <signal name="activate" handler="close_fingerprinter_window" object="song-selection-dialog" swapped="no"/>
+  </object>
+  <object class="GtkAction" id="actionSave">
+    <property name="sensitive">False</property>
+    <signal name="activate" handler="save_selected" swapped="no"/>
+  </object>
+  <object class="GtkDialog" id="song-selection-dialog">
+    <property name="can_focus">False</property>
+    <property name="border_width">5</property>
+    <property name="type_hint">dialog</property>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="songe-selection-dialog-vbox">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="dialog-action_area">
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="buttonSave">
+                <property name="label" translatable="yes">Save</property>
+                <property name="use_action_appearance">False</property>
+                <property name="related_action">actionSave</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="related_action">actionSave</property>
+                <property name="use_action_appearance">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="buttonClose">
+                <property name="label" translatable="yes">Close</property>
+                <property name="use_action_appearance">False</property>
+                <property name="related_action">actionClose</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="related_action">actionClose</property>
+                <property name="use_action_appearance">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox" id="statusBox">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="margin_top">15</property>
+            <property name="margin_bottom">15</property>
+            <property name="vexpand">True</property>
+            <property name="spacing">5</property>
+            <child>
+              <object class="GtkLabel" id="labelSearching">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Searching...</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSpinner" id="spinnerSearching">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="active">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="0">buttonSave</action-widget>
+      <action-widget response="0">buttonClose</action-widget>
+    </action-widgets>
+  </object>
+</interface>
