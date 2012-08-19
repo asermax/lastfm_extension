@@ -10,9 +10,11 @@
     <property name="sensitive">False</property>
   </object>
   <object class="GtkDialog" id="song-selection-dialog">
+    <property name="width_request">250</property>
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
     <property name="type_hint">dialog</property>
+    <property name="gravity">north</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="songe-selection-dialog-vbox">
         <property name="can_focus">False</property>
