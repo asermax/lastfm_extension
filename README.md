@@ -7,9 +7,12 @@ Whenever you love a track, it will also be marked with 5 stars on the player, an
 
 It currently doesn't support Unloving or Unbaning tracks (the LastFM API haven't implemented this feature yet).
 
-Also, you have the option to activate:
-- Playcount synchronization. (It can only retrieve the playcount from LastFM, not change it)
-- Loved track synchronization. (It will add 5 stars to the current track if it's currently marked as loved on your account)
+Extras!
+-----------
+Besides the love and buttons, this plugins add haves some extras, which you can activate from the plugin configuration dialog:
+* Playcount synchronization. (It can only retrieve the playcount from LastFM, not change it)
+* Loved track synchronization. (It will add 5 stars to the current track if it's currently marked as loved on your account)
+* Add an option to fingerprint your songs and match them against the Last.fm database! This handy feature requires [lastfp](http://pypi.python.org/pypi/pylastfp/0.1) to work. 
 
 Installation
 -----------

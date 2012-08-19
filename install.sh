@@ -56,6 +56,7 @@ GLIB_SCHEME="org.gnome.rhythmbox.plugins.lastfm_extension.gschema.xml"
 GLIB_DIR="/usr/share/glib-2.0/schemas/"
 SCRIPT_NAME=`basename "$0"`
 SCRIPT_PATH=${0%`basename "$0"`}
+MATCHER="matcher.py"
 
 #install the glib schema
 sudo mv "${PLUGIN_PATH}${GLIB_SCHEME}" "$GLIB_DIR"
@@ -71,6 +72,9 @@ then
 
     #copy the files
     cp -r "${SCRIPT_PATH}"* "$PLUGIN_PATH"
+    
+    #make the matcher executable
+    chmod +x "${PLUGIN_PATH}${MATCHER}"
 
     #remove the install script from the dir (not needed)
     rm "${PLUGIN_PATH}${SCRIPT_NAME}"
@@ -82,6 +86,9 @@ else
 
     #copy the files
     sudo cp -r "${SCRIPT_PATH}"* "$PLUGIN_PATH"
+    
+    #make the matcher executable
+    sudo chmod +x "${PLUGIN_PATH}${MATCHER}"
 
     #remove the install script from the dir (not needed)
     sudo rm "${PLUGIN_PATH}${SCRIPT_NAME}"
