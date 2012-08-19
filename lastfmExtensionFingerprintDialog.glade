@@ -6,8 +6,8 @@
     <signal name="activate" handler="close_fingerprinter_window" object="song-selection-dialog" swapped="no"/>
   </object>
   <object class="GtkAction" id="actionSave">
+    <property name="tooltip" translatable="yes">Save the selected song metadata</property>
     <property name="sensitive">False</property>
-    <signal name="activate" handler="save_selected" swapped="no"/>
   </object>
   <object class="GtkDialog" id="song-selection-dialog">
     <property name="can_focus">False</property>
