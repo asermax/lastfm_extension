@@ -139,27 +139,33 @@ class LastFMFingerprinter:
     def append_options( self, result, entry, main_box, status_box, action_save ):        
         vbox = Gtk.VBox()
         
-        first = None
-        for match in result:
-            if not first:
-                toggle = Gtk.RadioButton( label=match )   
-                first = toggle
-            else:
-                toggle = Gtk.RadioButton( label=match )
-                toggle.join_group( first )         
+        if len( result ) > 0:
+            first = None
+            for match in result:
+                if not first:
+                    toggle = Gtk.RadioButton( label=match )   
+                    first = toggle
+                else:
+                    toggle = Gtk.RadioButton( label=match )
+                    toggle.join_group( first )         
+                
+                toggle.set_mode( False )    
+                toggle.show()
+                
+                vbox.pack_start( toggle, True, True, 0 )  
+                
+            action_save.connect( 'activate', self.save_selected, entry, main_box )
+            idle_add( action_save.set_sensitive, True ) 
+        else:
+            label = Gtk.Label( 'No matches found.' )
+            label.show()
             
-            toggle.set_mode( False )    
-            toggle.show()
+            vbox.pack_start( label, True, True, 0 )
             
-            vbox.pack_start( toggle, True, True, 0 )   
-        
-        vbox.show()
-        
-        action_save.connect( 'activate', self.save_selected, entry, main_box )
-        
+        vbox.show()  
+                             
         idle_add( status_box.destroy )
         idle_add( main_box.pack_start, vbox, True, True, 0 )
-        idle_add( action_save.set_sensitive, True )        
         
     def close_fingerprinter_window( self, dialog ):
         dialog.destroy()
