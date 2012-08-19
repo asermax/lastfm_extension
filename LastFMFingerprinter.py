@@ -82,6 +82,15 @@ class LastFMFingerprinter:
         #rhythmbox database
         self.db = plugin.db
         
+        #queue for requests
+        self.queue = []
+    
+    def request_fingerprint( self, entry ):
+        if len( self.queue ) == 0:
+            self.fingerprint( entry )
+        
+        self.queue.append( entry )
+        
     def fingerprint( self, entry ):
         #show the fingerprinter dialog
         ui = self.show_dialog( entry )
@@ -154,7 +163,12 @@ class LastFMFingerprinter:
         
     def close_fingerprinter_window( self, dialog ):
         dialog.destroy()
-            
+        
+        self.queue.pop( 0 )
+        
+        if len( self.queue ) > 0:
+            self.fingerprint( self.queue[0] )
+                       
     def save_selected( self, _, entry, box ):
         options = box.get_children()[0].get_children()
         

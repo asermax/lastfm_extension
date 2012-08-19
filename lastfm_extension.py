@@ -383,7 +383,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
 		
     def fingerprint_song( self, _ ):
         for entry in self.get_selected_songs():
-            self.fingerprinter.fingerprint( entry )
+            self.fingerprinter.request_fingerprint( entry )
             
     def conection_changed( self, settings, key ):
         if settings[key]:
