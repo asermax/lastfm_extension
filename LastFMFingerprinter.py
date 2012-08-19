@@ -34,6 +34,7 @@ import LastFMExtensionKeys as Keys
 from LastFMExtensionUtils import asynchronous_call as async, idle_add
 
 DIALOG_BUILDER_FILE = 'lastfmExtensionFingerprintDialog.glade'
+MATCHER = 'matcher.py'
 DIALOG_NAME = 'song-selection-dialog'
 BOX = 'songe-selection-dialog-vbox'
 STATUS_BOX = 'statusBox'
@@ -75,6 +76,9 @@ class LastFMFingerprinter:
         #load the dialog builder file
         self.builder_file = rb.find_plugin_file( plugin, DIALOG_BUILDER_FILE )
         
+        #save the matcher path
+        self.matcher_path = rb.find_plugin_file( plugin, MATCHER )
+        
         #rhythmbox database
         self.db = plugin.db
         
@@ -108,7 +112,7 @@ class LastFMFingerprinter:
         path = unquote( urlparse( entry.get_playback_uri() ).path )
               
         #match the song        
-        raw = check_output( './matcher.py "%s"' % path, shell=True )
+        raw = check_output( [self.matcher_path, "%s" % path] )
         
         lines = re.split( '\n+', raw )
         matches = lines[:-1]
