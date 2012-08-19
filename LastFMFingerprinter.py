@@ -84,12 +84,12 @@ class LastFMFingerprinter:
         
     def fingerprint( self, entry ):
         #show the fingerprinter dialog
-        ui = self.show_dialog()
+        ui = self.show_dialog( entry )
         
         #fingerprint and match the entry asynchronously
         async( self.match, self.append_options, entry, *ui )( entry )       
         
-    def show_dialog( self ):
+    def show_dialog( self, entry ):
         #create a new builder over the builder_file
         builder = Gtk.Builder()
         builder.add_from_file( self.builder_file )
@@ -98,7 +98,11 @@ class LastFMFingerprinter:
 		builder.connect_signals( self )
 		
 		#show the dialog
-		builder.get_object( DIALOG_NAME ).present()
+		dialog = builder.get_object( DIALOG_NAME )
+		dialog.set_title( 'Matches for %s - %s' % 
+		                    ( entry.get_string( RB.RhythmDBPropType.ARTIST ),
+		                      entry.get_string( RB.RhythmDBPropType.TITLE ) ) )
+		dialog.present()
 		
 		#get the status box and the box
 		main_box = builder.get_object( BOX )
@@ -110,9 +114,13 @@ class LastFMFingerprinter:
     def match( self, entry ):
         #get artist, album, track and path    
         path = unquote( urlparse( entry.get_playback_uri() ).path )
-              
+        artist = entry.get_string(RB.RhythmDBPropType.ARTIST )
+        album = entry.get_string(RB.RhythmDBPropType.ALBUM )
+        title = entry.get_string(RB.RhythmDBPropType.TITLE )
+        
         #match the song        
-        raw = check_output( [self.matcher_path, "%s" % path] )
+        raw = check_output( 
+                        [self.matcher_path, "%s" % path, artist, album, title] )
         
         lines = re.split( '\n+', raw )
         matches = lines[:-1]
