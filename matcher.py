@@ -12,6 +12,8 @@ either Gstreamer (and its Python bindings) or pymad installed.
 import sys
 import os
 
+import LastFMExtensionKeys as Keys
+
 # Just a little trickery to avoid importing the "lastfp" package that's
 # in the source distribution, because it won't contain the built
 # _fplib.so extension module. We need to import from the built verison,
@@ -20,12 +22,6 @@ for path in '', os.path.abspath(os.path.dirname(__file__)):
     if path in sys.path:
         sys.path.remove(path)
 import lastfp
-
-# This API key is specifically for this script, lastmatch.py. If you
-# use pylastfp in your project, you'll want to generate your own. It's
-# easy and free!
-# http://last.fm/api/account
-API_KEY = '7821ee9bf9937b7f94af2abecced8ddd'
 
 if __name__ == '__main__':
     args = sys.argv[1:]
@@ -38,24 +34,28 @@ if __name__ == '__main__':
     else:
         match_func = lastfp.gst_match
         
-    for path in args:
-        path = os.path.abspath(os.path.expanduser(path))
+    path = os.path.abspath(os.path.expanduser(args[0]))
+    artist = args[1]
+    album = args[2]    
+    title = args[3]
 
-        # Perform match.
-        try:
-            xml = match_func(API_KEY, path)
-        except lastfp.ExtractionError:
-            print 'fingerprinting failed!'
-            sys.exit(1)
-        except lastfp.QueryError:
-            print 'could not match fingerprint!'
-            sys.exit(1)
+    # Perform match.
+    try:
+        xml = match_func( Keys.API_KEY, path, metadata={ 'artist':artist,
+                                                         'album':album,
+                                                         'track':title } )
+    except lastfp.ExtractionError:
+        print 'fingerprinting failed!'
+        sys.exit(1)
+    except lastfp.QueryError:
+        print 'could not match fingerprint!'
+        sys.exit(1)
 
-        # Show results.
-        matches = lastfp.parse_metadata(xml)
-        for track in matches:
-            rank = track['rank']
-            artist = track['artist'].encode('utf-8') 
-            title = track['title'].encode('utf-8') 
-            
-            print '%.2f: %s - %s' % (rank, artist, title)
+    # Show results.
+    matches = lastfp.parse_metadata(xml)
+    for track in matches:
+        rank = track['rank']
+        artist = track['artist'].encode('utf-8') 
+        title = track['title'].encode('utf-8') 
+        
+        print '%.2f: %s - %s' % (rank, artist, title)
