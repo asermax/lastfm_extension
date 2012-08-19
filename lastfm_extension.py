@@ -369,8 +369,17 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         except LastFMFingerprinter.LastFMFingerprintException:
             pass
             
-    def fingerprint_song( self, action ):
-        self.fingerprinter.show_dialog() 	      
+    def get_selected_songs( self ):
+        shell = self.object
+        
+        page = shell.props.selected_page		
+		selected = page.get_entry_view().get_selected_entries()
+		
+		return selected
+		
+    def fingerprint_song( self, _ ):
+        for entry in self.get_selected_songs():
+            self.fingerprinter.fingerprint( entry )
             
     def conection_changed( self, settings, key ):
         if settings[key]:
