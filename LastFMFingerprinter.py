@@ -155,6 +155,7 @@ class LastFMFingerprinter:
                 metadata = re.match( r'.+?:\s(.+?)\s-\s(.+)$',option.get_label() ).groups()
                 self.db.entry_set( entry, RB.RhythmDBPropType.ARTIST, metadata[0] ) 
                 self.db.entry_set( entry, RB.RhythmDBPropType.TITLE, metadata[1] ) 
+                self.db.commit()
                 break     
                 
         self.close_fingerprinter_window( box.get_parent() )  
