@@ -203,6 +203,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         
         #bonus: ponemos 5 estrellas al track
         self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)   
+        self.db.commit()
         
     def ban_track( self, action ):
         entry, track = self.get_track()
@@ -226,7 +227,8 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         notify( titulo, texto )
         
         #bonus: ponemos 0 estrellas al track
-        self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 0)     
+        self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 0)    
+        self.db.commit() 
 
     def enable_buttons( self, entry, settings ):
         enable = settings[Keys.CONNECTED] and entry is not None
@@ -260,6 +262,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
                 
         if playcount and type(playcount) is int and old_playcount < playcount:
             self.db.entry_set( entry, RB.RhythmDBPropType.PLAY_COUNT, playcount )  
+            self.db.commit()
             
     def connect_loved( self, settings, key ):
 		#si la opcion esta habilitada, conectamos la señal
@@ -284,7 +287,8 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         
     def update_loved( self, loved, entry ):        
     	if type(loved) is bool and loved:
-    		self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)   	      
+    		self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)   	 
+    		self.db.commit()     
             
     def conection_changed( self, settings, key ):
         if settings[key]:
