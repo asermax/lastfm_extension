@@ -26,7 +26,7 @@ finally:
 from gi.repository import Gio, RB, Gtk
 from urlparse import urlparse
 from urllib import unquote
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 import re
 import rb
 
@@ -127,19 +127,22 @@ class LastFMFingerprinter:
         album = entry.get_string(RB.RhythmDBPropType.ALBUM )
         title = entry.get_string(RB.RhythmDBPropType.TITLE )
         
-        #match the song        
-        raw = check_output( 
+        #match the song    
+        try:    
+            raw = check_output( 
                         [self.matcher_path, "%s" % path, artist, album, title] )
+                
+            lines = re.split( '\n+', raw )
+            result = lines[:-1]
+        except CalledProcessError as error:
+            result = error.output
         
-        lines = re.split( '\n+', raw )
-        matches = lines[:-1]
-        
-        return matches          
+        return result          
     
     def append_options( self, result, entry, main_box, status_box, action_save ):        
         vbox = Gtk.VBox()
         
-        if len( result ) > 0:
+        if type( result ) is list and len( result ) > 0:
             first = None
             for match in result:
                 if not first:
@@ -157,7 +160,11 @@ class LastFMFingerprinter:
             action_save.connect( 'activate', self.save_selected, entry, main_box )
             idle_add( action_save.set_sensitive, True ) 
         else:
-            label = Gtk.Label( 'No matches found.' )
+            if type( result ) is str:
+                label = Gtk.Label( result )
+            else:
+                label = Gtk.Label( 'No matches found.' )
+                
             label.show()
             
             vbox.pack_start( label, True, True, 0 )
