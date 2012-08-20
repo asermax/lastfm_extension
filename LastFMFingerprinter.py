@@ -16,13 +16,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-try:
-    import lastfp
-except:
-    raise LastFMFingerprintException( 'LastFM fingerprint library not found.' )
-finally:
-    del lastfp
-
 from gi.repository import Gio, RB, Gtk
 from urlparse import urlparse
 from urllib import unquote
@@ -33,6 +26,18 @@ import rb
 import LastFMExtensionKeys as Keys
 from LastFMExtensionUtils import asynchronous_call as async, idle_add
 
+#try to import lastfp
+class LastFMFingerprinterException( Exception ):
+    def __init__( self, message ):
+        super( LastFMFingerprinterException, self).__init__( message )
+
+try:
+    import lastfp
+    del lastfp
+except:
+    raise LastFMFingerprinterException( 'LastFM fingerprint library not found.' )
+
+#constants
 DIALOG_BUILDER_FILE = 'lastfmExtensionFingerprintDialog.glade'
 MATCHER = 'matcher.py'
 DIALOG_NAME = 'song-selection-dialog'
@@ -64,9 +69,6 @@ ui_context_menu = """
   </popup>
 </ui>
 """
-class LastFMFingerprintException( Exception ):
-    def __init__( self, message ):
-        super( LastFMFingerprintException, self).__init__( message )
         
 class LastFMFingerprinter:
     

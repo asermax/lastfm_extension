@@ -20,12 +20,13 @@ import pylast
 from gi.repository import GObject, Gio, Gtk, Peas, RB
 
 import rb
+
 import LastFMExtensionKeys as Keys
 import LastFMExtensionUtils
+import LastFMExtensionGui as GUI
 import LastFMFingerprinter
 from LastFMExtensionUtils import asynchronous_call as async, notify
 from LastFMExtensionGui import ConfigDialog
-from LastFMFingerprinter import LastFMFingerprinter as Fingerprinter
 
 import gettext
 gettext.install('rhythmbox', RB.locale_dir(), unicode=True)
@@ -328,14 +329,19 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
     		self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)   	 
     		self.db.commit()     
     		
-    def activate_fingerprinter( self, settings, key, manager ):
+    def activate_fingerprinter( self, settings, key, manager ):           
         try:
             self.fingerprinter
         except:
             self.fingerprinter = None
         
         try:
-            if settings[key]:            
+            if settings[key]:  
+                print 'activate fingerprinter'
+            
+                #importamos el modulo
+                from LastFMFingerprinter import LastFMFingerprinter as Fingerprinter
+            
                 #creamos el fingerprinter
                 self.fingerprinter = Fingerprinter( self )
             
@@ -370,8 +376,10 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
                 		
             manager.ensure_update()
             
-        except LastFMFingerprinter.LastFMFingerprintException:
-            pass
+        except Exception as e:
+            #this means it isn't
+            settings[key] = False
+            GUI.show_error_message( e.message )            
             
     def get_selected_songs( self ):
         shell = self.object
