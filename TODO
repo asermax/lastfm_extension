@@ -1,0 +1,39 @@
+This documents presents some points to take into account for the refactoring 
+of the plugin, for future reference.
+The idea of refactoring the plugin, is to get a more object oriented structure
+to the diferent 'extensions' this plugin proposes.
+Being that each 'extension' represents an independent functionlaity, but they
+all are related for the service they are based on (LastFM), I believe grouping
+them in this plugin is the best way to go.
+
+=========================================================================
+
+Firstly, there should be a refactoring on the definition of this abstract 
+'extension'. There should be a base interface which all extensions should
+respond to. That way, the plugin could load, activate and deactivate this
+extensions dinamically, giving to each of them the necesary tools to manage
+it's functionality and integrate them into Rhythmbox.
+So, a first sketch of the interface:
+
+Extension:
+    -__init__ => some useful params could be an instance to the pylast network,
+                 a shell reference.
+    -activate => should create all the necesary objects for it to work. The base
+                 implementation of this method should call connect_signals and
+                 create_ui
+    -connect_signals => connect all necesary signals
+    -create_ui => create the ui for the extension
+    -deactivate => clean up
+    
+=========================================================================
+
+Another thing to take into account would be centralizing all the setting 
+managing into one module, to avoid code redundancy and to have more control 
+on the changes made there. Maybe it could be implemented as a Singleton, to 
+access it from the plugin and the configuration dialog.
+
+=========================================================================
+
+Maybe a extension manager? This would be the module that would dinamically 
+lookup and load new extensions.
+
