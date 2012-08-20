@@ -419,6 +419,28 @@ class _Network(object):
         doc = _Request(self, "track.getInfo", params).execute(True)
         
         return Track(_extract(doc, "name", 1), _extract(doc, "name"), self)
+    
+    def get_tracks_by_fpid(self, fpid):
+        """
+        Returns the tracks matching the fingerprint id.
+        Tracks returned by this method, include an extra attribute 'rank' 
+        that indicates the likelyhood of the track with the fpid.
+        """
+        
+        params = {"fingerprintid":fpid}
+        
+        doc = _Request(self, 'track.getFingerprintMetadata', params).execute( True )
+        
+        seq = []
+        for n in doc.getElementsByTagName('track'):
+            title = _extract(n, 'name')
+            artist = _extract(n, 'name', 1)
+            track = Track(artist, title, self)
+            track.rank = n.attributes['rank'].value
+            
+            seq.append(track)
+        
+        return seq
 
     def get_artist_by_mbid(self, mbid):
         """Loooks up an artist by its MusicBrainz ID"""
