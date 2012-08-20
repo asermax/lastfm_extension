@@ -31,6 +31,16 @@ LOVED_CHECKBOX = 'checkbuttonLoved'
 FINGERPRINTER_CHECKBOX = 'checkbuttonFingerprinter'
 
 '''
+Función auxiliar para mostrar mensajes de error con un dialog.
+'''
+def show_error_message( message ):
+	dialog = Gtk.MessageDialog( None, 0, Gtk.MessageType.ERROR,
+								Gtk.ButtonsType.CLOSE, message )
+	
+	dialog.run()
+	dialog.destroy()
+
+'''
 Diálogo que permite obtener y persistir ciertas configuraciones,
 utilizando Gio para persistir las mismas.
 '''
@@ -84,6 +94,7 @@ class ConfigDialog( GObject.Object, PeasGtk.Configurable ):
     
     def _toggle( self, checkbutton, key ):
         self.settings[key] = checkbutton.get_active()
+        checkbutton.set_active( self.settings[key] )
        
     def _login( self, button, label ):               
         #mostramos la pagina para aceptar la conexion
