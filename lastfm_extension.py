@@ -21,10 +21,15 @@ from gi.repository import GObject, Gio, Gtk, Peas, RB
 
 import rb
 
+try:
+    import LastFMFingerprinter
+    from LastFMFingerprinter import LastFMFingerprinter as Fingerprinter
+except Exception as e:
+    Fingerprinter = e 
+
 import LastFMExtensionKeys as Keys
 import LastFMExtensionUtils
 import LastFMExtensionGui as GUI
-import LastFMFingerprinter
 from LastFMExtensionUtils import asynchronous_call as async, notify
 from LastFMExtensionGui import ConfigDialog
 
@@ -335,51 +340,43 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         except:
             self.fingerprinter = None
         
-        try:
-            if settings[key]:  
-                print 'activate fingerprinter'
-            
-                #importamos el modulo
-                from LastFMFingerprinter import LastFMFingerprinter as Fingerprinter
-            
-                #creamos el fingerprinter
-                self.fingerprinter = Fingerprinter( self )
-            
-                #agregamos la action para el fingerprinter
-                self.finger_action_group = Gtk.ActionGroup( 
-                                                'LastFMExtensionFingerprinter' )
-                action_fingerprint = Gtk.Action('FingerprintSong',
-                                                _('_Fingerprint Song'),
-                                                _("Get this song fingerprinted."),
-                                                None)
-                icon = Gio.FileIcon.new( Gio.File.new_for_path( 
-                                    rb.find_plugin_file( self, LASTFM_ICON ) ) )
-                action_fingerprint.set_gicon( icon )      
-                
-                action_fingerprint.connect( 'activate', self.fingerprint_song )
-                
-                self.finger_action_group.add_action( action_fingerprint ) 
-                manager.insert_action_group( self.finger_action_group, -1 )
-                
-                #agregamos los menues contextuales
-                self.ui_cm = manager.add_ui_from_string( 
-                                           LastFMFingerprinter.ui_context_menu ) 
-            elif self.fingerprinter:    
-                print 'deactivate fingerprinter'    
-                    
-                manager.remove_action_group( self.finger_action_group )
-                manager.remove_ui( self.ui_cm )        
-                            
-                del self.finger_action_group
-                del self.ui_cm
-                del self.fingerprinter
-                		
-            manager.ensure_update()
-            
-        except Exception as e:
-            #this means it isn't
+        if settings[key] and isinstance( Fingerprinter, Exception ):
+            #this means the lastfp module isn't present
             settings[key] = False
-            GUI.show_error_message( e.message )            
+            GUI.show_error_message( Fingerprinter.message )  
+        
+        elif settings[key]:         
+            #creamos el fingerprinter
+            self.fingerprinter = Fingerprinter( self )
+        
+            #agregamos la action para el fingerprinter
+            self.finger_action_group = Gtk.ActionGroup( 
+                                            'LastFMExtensionFingerprinter' )
+            action_fingerprint = Gtk.Action('FingerprintSong',
+                                            _('_Fingerprint Song'),
+                                            _("Get this song fingerprinted."),
+                                            None)
+            icon = Gio.FileIcon.new( Gio.File.new_for_path( 
+                                rb.find_plugin_file( self, LASTFM_ICON ) ) )
+            action_fingerprint.set_gicon( icon )      
+            
+            action_fingerprint.connect( 'activate', self.fingerprint_song )
+            
+            self.finger_action_group.add_action( action_fingerprint ) 
+            manager.insert_action_group( self.finger_action_group, -1 )
+            
+            #agregamos los menues contextuales
+            self.ui_cm = manager.add_ui_from_string( 
+                                       LastFMFingerprinter.ui_context_menu ) 
+        elif self.fingerprinter:      
+            manager.remove_action_group( self.finger_action_group )
+            manager.remove_ui( self.ui_cm )        
+                        
+            del self.finger_action_group
+            del self.ui_cm
+            del self.fingerprinter
+            		
+        manager.ensure_update()                   
             
     def get_selected_songs( self ):
         shell = self.object
