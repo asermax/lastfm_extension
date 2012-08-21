@@ -12,7 +12,7 @@ Extras!
 Besides the love and ban buttons, this plugins haves some extras, which you can activate from the plugin configuration dialog:
 * Playcount synchronization. (It can only retrieve the playcount from LastFM, not change it)
 * Loved track synchronization. (It will add 5 stars to the current track if it's currently marked as loved on your account)
-* Add an option to fingerprint your songs and match them against the Last.fm database! This handy feature requires [lastfp](http://pypi.python.org/pypi/pylastfp/0.1) to work. TODO: fill ALL the available info from Last.fm into the local database, for now it just fills title and artist. I would have to modify pylast to add a function to get a track by it's fpid (fingerprint id)
+* Add an option to fingerprint your songs and match them against the Last.fm database! This handy feature requires [lastfp](http://pypi.python.org/pypi/pylastfp/0.1) to work. TODO: fill ALL the available info from Last.fm into the local database, for now it just fills title and artist. 
 
 Installation
 -----------
