@@ -70,12 +70,20 @@ ui_context_menu = """
 </ui>
 """
         
+'''
+This extension is responsible of fingerprinting songs and showing the UI to
+let the user decide if he wants to save the result and which match to use.
+'''
 class LastFMFingerprinter:
     
+    '''
+    Initialises the extension, using the base plugin to populate some of the 
+    internal properties used on the fingerprinting process.
+    '''
     def __init__( self, plugin ):
         self.settings = Gio.Settings.new( Keys.PATH )
         
-        #load the dialog builder file
+        #get the builder file path
         self.builder_file = rb.find_plugin_file( plugin, DIALOG_BUILDER_FILE )
         
         #save the matcher path
@@ -90,21 +98,36 @@ class LastFMFingerprinter:
         #queue for requests
         self.queue = []
     
+    '''
+    This is this extension principal interface. This method should be called
+    whenever it's needed to fingerprint a song. 
+    It uses the extension queue
+    system, to avoid multiple request to happen at the same time.
+    '''
     def request_fingerprint( self, entry ):
         if len( self.queue ) == 0:
-            self.fingerprint( entry )
+            self._fingerprint( entry )
         
         self.queue.append( entry )
-        
-    def fingerprint( self, entry ):
+    
+    '''
+    This is the actual function that starts the fingerprinting.
+    It shows a Dialog to indicate the user to wait, and executes the 
+    fingerprinting proccess asynchronously.
+    '''    
+    def _fingerprint( self, entry ):
         #show the fingerprinter dialog
-        ui = self.show_dialog( entry )
+        ui = self._show_dialog( entry )
         
         #fingerprint and match the entry asynchronously
-        async( self.match, self.append_options, entry, *ui )( entry, 
+        async( self._match, self._append_options, entry, *ui )( entry, 
                                                               self.network )       
-        
-    def show_dialog( self, entry ):
+    
+    '''
+    Shows a wait dialog with the entry title and artist in the title.
+    This dialog is used to show the matching options after they are fetched.
+    '''    
+    def _show_dialog( self, entry ):
         #create a new builder over the builder_file
         builder = Gtk.Builder()
         builder.add_from_file( self.builder_file )
@@ -126,7 +149,13 @@ class LastFMFingerprinter:
 		
 		return main_box, status_box, action_save
     
-    def match( self, entry, network ):
+    '''
+    This method encapsulates the fingerprinting and matching process.
+    It takes info from the entry to realize the fingerprinting and uses pylast
+    to retrieve the tracks info, which is finally returned as a list of Track
+    instances. 
+    '''
+    def _match( self, entry, network ):
         #get artist, album, track and path    
         path = unquote( urlparse( entry.get_playback_uri() ).path )
         artist = entry.get_string(RB.RhythmDBPropType.ARTIST )
@@ -141,16 +170,27 @@ class LastFMFingerprinter:
             result = network.get_tracks_by_fpid( fpid )
                         
         except CalledProcessError as error:
-            result = error.output
+            #in the case the fingerprinter fails, raise an exception 
+            raise Exception( error.output )
         
         return result          
     
-    def append_options( self, result, entry, main_box, status_box, action_save ):           
+    '''
+    This method appends toggles buttons to the dialog, with the info of the 
+    matched tracks and connects the signal to save the selected option.
+    '''
+    def _append_options( self, result, entry, main_box, status_box, action_save ):        
+        #box which will contain the toggles   
         vbox = Gtk.VBox()
         
+        #if there where actual results
         if type( result ) is list and len( result ) > 0:
+            #first toggle, which will determine the radio group
             first = None
+            
+            #for each option
             for track in result:
+                #append the option and make sure they are all in the same group
                 label = '%d%%: %s' % (math.ceil( track.rank * 100 ), str( track ))
             
                 if not first:
@@ -164,34 +204,47 @@ class LastFMFingerprinter:
                 toggle.show()
                 
                 vbox.pack_start( toggle, True, True, 0 )  
-                
-            action_save.connect( 'activate', self.save_selected, entry, result, 
+             
+            #connect and activate the save action
+            action_save.connect( 'activate', self._save_selected, entry, result, 
                                                                       main_box )
             idle_add( action_save.set_sensitive, True ) 
+            
+        #if there weren't valid results
         else:
-            if type( result ) is str:
-                label = Gtk.Label( result )
+            #if we catched and exception show the error, otherwise, indicate 
+            #that there weren't matches
+            if type( result ) is Exception:
+                label = Gtk.Label( result.message )
             else:
                 label = Gtk.Label( 'No matches found.' )
                 
             label.show()
             
             vbox.pack_start( label, True, True, 0 )
-            
+        
+        #show the box   
         vbox.show()  
-                             
+         
+        #delete the old box and append the new
         idle_add( status_box.destroy )
         idle_add( main_box.pack_start, vbox, True, True, 0 )
-        
-    def close_fingerprinter_window( self, dialog ):
+    
+    '''
+    Callback for closing the dialog.
+    '''  
+    def _close_fingerprinter_window( self, dialog ):
         dialog.destroy()
         
         self.queue.pop( 0 )
         
         if len( self.queue ) > 0:
-            self.fingerprint( self.queue[0] )
-                       
-    def save_selected( self, _, entry, tracks, box ):
+            self._fingerprint( self.queue[0] )
+    
+    '''
+    Callback for saving the selected option.
+    '''                   
+    def _save_selected( self, _, entry, tracks, box ):
         options = box.get_children()[0].get_children()
         
         for option in options:

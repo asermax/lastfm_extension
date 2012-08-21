@@ -3,7 +3,7 @@
   <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkAction" id="actionClose">
     <property name="tooltip" translatable="yes">Close the window</property>
-    <signal name="activate" handler="close_fingerprinter_window" object="song-selection-dialog" swapped="no"/>
+    <signal name="activate" handler="_close_fingerprinter_window" object="song-selection-dialog" swapped="no"/>
   </object>
   <object class="GtkAction" id="actionSave">
     <property name="tooltip" translatable="yes">Save the selected song metadata</property>
