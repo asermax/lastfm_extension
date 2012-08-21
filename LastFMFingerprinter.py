@@ -258,5 +258,5 @@ class LastFMFingerprinter:
                 self.db.commit()
                 break     
                 
-        self.close_fingerprinter_window( box.get_parent() )  
+        self._close_fingerprinter_window( box.get_parent() )  
     
