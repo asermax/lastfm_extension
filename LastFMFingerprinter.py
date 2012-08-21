@@ -20,7 +20,7 @@ from gi.repository import Gio, RB, Gtk
 from urlparse import urlparse
 from urllib import unquote
 from subprocess import check_output, CalledProcessError
-import re
+import re, math
 import rb
 
 import LastFMExtensionKeys as Keys
@@ -84,6 +84,9 @@ class LastFMFingerprinter:
         #rhythmbox database
         self.db = plugin.db
         
+        #lastfm network
+        self.network = plugin.network
+        
         #queue for requests
         self.queue = []
     
@@ -98,7 +101,8 @@ class LastFMFingerprinter:
         ui = self.show_dialog( entry )
         
         #fingerprint and match the entry asynchronously
-        async( self.match, self.append_options, entry, *ui )( entry )       
+        async( self.match, self.append_options, entry, *ui )( entry, 
+                                                              self.network )       
         
     def show_dialog( self, entry ):
         #create a new builder over the builder_file
@@ -122,7 +126,7 @@ class LastFMFingerprinter:
 		
 		return main_box, status_box, action_save
     
-    def match( self, entry ):
+    def match( self, entry, network ):
         #get artist, album, track and path    
         path = unquote( urlparse( entry.get_playback_uri() ).path )
         artist = entry.get_string(RB.RhythmDBPropType.ARTIST )
@@ -131,27 +135,29 @@ class LastFMFingerprinter:
         
         #match the song    
         try:    
-            raw = check_output( 
+            fpid = check_output( 
                         [self.matcher_path, "%s" % path, artist, album, title] )
                 
-            lines = re.split( '\n+', raw )
-            result = lines[:-1]
+            result = network.get_tracks_by_fpid( fpid )
+                        
         except CalledProcessError as error:
             result = error.output
         
         return result          
     
-    def append_options( self, result, entry, main_box, status_box, action_save ):        
+    def append_options( self, result, entry, main_box, status_box, action_save ):           
         vbox = Gtk.VBox()
         
         if type( result ) is list and len( result ) > 0:
             first = None
-            for match in result:
+            for track in result:
+                label = '%d%%: %s' % (math.ceil( track.rank * 100 ), str( track ))
+            
                 if not first:
-                    toggle = Gtk.RadioButton( label=match )   
+                    toggle = Gtk.RadioButton( label=label )   
                     first = toggle
                 else:
-                    toggle = Gtk.RadioButton( label=match )
+                    toggle = Gtk.RadioButton( label=label )
                     toggle.join_group( first )         
                 
                 toggle.set_mode( False )    
@@ -159,7 +165,8 @@ class LastFMFingerprinter:
                 
                 vbox.pack_start( toggle, True, True, 0 )  
                 
-            action_save.connect( 'activate', self.save_selected, entry, main_box )
+            action_save.connect( 'activate', self.save_selected, entry, result, 
+                                                                      main_box )
             idle_add( action_save.set_sensitive, True ) 
         else:
             if type( result ) is str:
@@ -184,14 +191,17 @@ class LastFMFingerprinter:
         if len( self.queue ) > 0:
             self.fingerprint( self.queue[0] )
                        
-    def save_selected( self, _, entry, box ):
+    def save_selected( self, _, entry, tracks, box ):
         options = box.get_children()[0].get_children()
         
         for option in options:
             if option.get_active():
-                metadata = re.match( r'.+?:\s(.+?)\s-\s(.+)$',option.get_label() ).groups()
-                self.db.entry_set( entry, RB.RhythmDBPropType.ARTIST, metadata[0] ) 
-                self.db.entry_set( entry, RB.RhythmDBPropType.TITLE, metadata[1] ) 
+                track = tracks[options.index( option )]
+                
+                self.db.entry_set( entry, RB.RhythmDBPropType.ARTIST, 
+                                          str(track.get_artist()) ) 
+                self.db.entry_set( entry, RB.RhythmDBPropType.TITLE, 
+                                          str(track.get_title()) ) 
                 self.db.commit()
                 break     
                 
