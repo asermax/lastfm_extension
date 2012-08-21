@@ -20,7 +20,7 @@ from gi.repository import Gio, RB, Gtk
 from urlparse import urlparse
 from urllib import unquote
 from subprocess import check_output, CalledProcessError
-import re, math
+import math
 import rb
 
 import LastFMExtensionKeys as Keys
