@@ -436,7 +436,7 @@ class _Network(object):
             title = _extract(n, 'name')
             artist = _extract(n, 'name', 1)
             track = Track(artist, title, self)
-            track.rank = n.attributes['rank'].value
+            track.rank = float(n.attributes['rank'].value)
             
             seq.append(track)
         
