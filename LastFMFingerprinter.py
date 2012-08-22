@@ -303,7 +303,8 @@ class LastFMFingerprinter:
             date = album.get_release_date()
             
             if date.strip() != '':
-                info.append( (RB.RhythmDBPropType.DATE, date.split()[2][:-1]) )
+                info.append( (RB.RhythmDBPropType.DATE, 
+                              int( date.split()[2][:-1] )) )
             
             #album artist
             info.append( (RB.RhythmDBPropType.ALBUM_ARTIST, 
@@ -325,6 +326,8 @@ class LastFMFingerprinter:
     the entry.
     '''
     def _delayed_properties_save( self, info, entry ):    
+        print info
+    
         for prop in info:
             idle_add( self.db.entry_set, entry,*prop )
             
