@@ -101,8 +101,8 @@ class LastFMFingerprinter:
     '''
     This is this extension principal interface. This method should be called
     whenever it's needed to fingerprint a song. 
-    It uses the extension queue
-    system, to avoid multiple request to happen at the same time.
+    It uses the extension queue system, to avoid multiple request to happen at 
+    the same time.
     '''
     def request_fingerprint( self, entry ):
         if len( self.queue ) == 0:
@@ -185,30 +185,36 @@ class LastFMFingerprinter:
         
         #if there where actual results
         if type( result ) is list and len( result ) > 0:
-            #first toggle, which will determine the radio group
-            first = None
+            #options list
+            options = []
             
             #for each option
             for track in result:
                 #append the option and make sure they are all in the same group
                 label = '%d%%: %s' % (math.ceil( track.rank * 100 ), str( track ))
             
-                if not first:
+                if not options:
                     toggle = Gtk.RadioButton( label=label )   
-                    first = toggle
+                    options.append( toggle )
                 else:
                     toggle = Gtk.RadioButton( label=label )
-                    toggle.join_group( first )         
+                    toggle.join_group( options[0] )         
                 
                 toggle.set_mode( False )    
-                toggle.show()
                 
                 vbox.pack_start( toggle, True, True, 0 )  
              
+            #also, add a checkbox to ask if fetch extra info
+            check_extra = Gtk.CheckButton( 'Fetch extra info?')
+            check_extra.set_tooltip_text( 'Fetch album name, track number, '
+                                          +'relase year, playcount and rating')
+             
+            vbox.pack_end( check_extra, True, True, 0 )  
+             
             #connect and activate the save action
             action_save.connect( 'activate', self._save_selected, entry, result, 
-                                                                      main_box )
-            idle_add( action_save.set_sensitive, True ) 
+                                 main_box.get_parent(), options, check_extra )
+            idle_add( action_save.set_sensitive, True )          
             
         #if there weren't valid results
         else:
@@ -218,13 +224,11 @@ class LastFMFingerprinter:
                 label = Gtk.Label( result.message )
             else:
                 label = Gtk.Label( 'No matches found.' )
-                
-            label.show()
-            
+                            
             vbox.pack_start( label, True, True, 0 )
         
         #show the box   
-        vbox.show()  
+        vbox.show_all()  
          
         #delete the old box and append the new
         idle_add( status_box.destroy )
@@ -244,9 +248,7 @@ class LastFMFingerprinter:
     '''
     Callback for saving the selected option.
     '''                   
-    def _save_selected( self, _, entry, tracks, box ):
-        options = box.get_children()[0].get_children()
-        
+    def _save_selected( self, _, entry, tracks, dialog, options, extra ):        
         for option in options:
             if option.get_active():
                 track = tracks[options.index( option )]
@@ -256,7 +258,75 @@ class LastFMFingerprinter:
                 self.db.entry_set( entry, RB.RhythmDBPropType.TITLE, 
                                           str(track.get_title()) ) 
                 self.db.commit()
+                
+                #asynchronously retrieve extra data
+                if extra.get_active():
+                    async( self._fetch_extra_info, 
+                           self._delayed_properties_save, entry )( track )
+                
                 break     
                 
-        self._close_fingerprinter_window( box.get_parent() )  
+        self._close_fingerprinter_window( dialog ) 
+    
+    '''
+    Fetch extra info from Last.fm.
+    For now, it fetchs:
+    - Playcount
+    - Album data (if available)
+        - Rating (if is loved, 5 stars)
+        - Album Name
+        - Release Year (if available)
+        - Album Artist
+        - Track Number
+    - TODO: Genre
+    '''    
+    def _fetch_extra_info( self, track ):
+        #list for extra info with it's db keys
+        info = []
+        
+        #play count
+        info.append( (RB.RhythmDBPropType.PLAY_COUNT, 
+                      track.get_playcount( True )) )
+                   
+        #loved track (rating 5 stars)           
+        if track.is_loved():
+            info.append( (RB.RhythmDBPropType.RATING, 5) )
+        
+        #album data
+        album = track.get_album()
+        
+        if album:
+            #album name
+            info.append( (RB.RhythmDBPropType.ALBUM, str( album.get_name() )) )
+            
+            #release date (year)
+            date = album.get_release_date()
+            
+            if date.strip() != '':
+                info.append( (RB.RhythmDBPropType.DATE, date.split()[2][:-1]) )
+            
+            #album artist
+            info.append( (RB.RhythmDBPropType.ALBUM_ARTIST, 
+                          str( album.get_artist().get_name() )) )
+                          
+            #track number
+            tracks = album.get_tracks()
+            
+            for track_number in range( 0, len( tracks ) ):
+                if track == tracks[track_number]:
+                    break
+            
+            info.append( (RB.RhythmDBPropType.TRACK_NUMBER, track_number + 1) )
+        
+        return info
+    
+    '''
+    Callback used after extra info is fetched, to save it to the properties of 
+    the entry.
+    '''
+    def _delayed_properties_save( self, info, entry ):    
+        for prop in info:
+            idle_add( self.db.entry_set, entry,*prop )
+            
+        idle_add( self.db.commit )
     
