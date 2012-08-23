@@ -214,8 +214,9 @@ class LastFMFingerprinter:
              
             #also, add a checkbox to ask if fetch extra info
             check_extra = Gtk.CheckButton( 'Fetch extra info?')
-            check_extra.set_tooltip_text( 'Fetch album name, track number, '
-                                          +'relase year, playcount and rating')
+            check_extra.set_tooltip_text( 'Fetch track playcount, rating, '
+                                          + 'genre, album name, track number '
+                                          + 'and release year' )
              
             vbox.pack_end( check_extra, True, True, 0 )  
              
