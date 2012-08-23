@@ -7,13 +7,15 @@ Whenever you love a track, it will also be marked with 5 stars on the player, an
 
 It currently doesn't support Unloving or Unbaning tracks (the LastFM API haven't implemented this feature yet).
 
-Also, you have the option to activate:
-- Playcount synchronization. (It can only retrieve the playcount from LastFM, not change it)
-- Loved track synchronization. (It will add 5 stars to the current track if it's currently marked as loved on your account)
+Extras!
+-----------
+Besides the love and ban buttons, this plugins haves some extras, which you can activate from the plugin configuration dialog:
+* Playcount synchronization. (It can only retrieve the playcount from LastFM, not change it)
+* Loved track synchronization. (It will add 5 stars to the current track if it's currently marked as loved on your account)
+* Add an option to fingerprint your songs and match them against the Last.fm database! Initialy, this extension can retrieve the title and artist name of your tracks, but you can also fetch extra info (as it's album name, track number, realese year, playcount, rating and genre) by checking the "Fetch extra info" checkbox (this will be done asynchronously in the background, once the info is fetched, your track will be updated). This handy feature requires [lastfp](http://pypi.python.org/pypi/pylastfp/0.1) to work.
 
 Installation
 -----------
-
 To install, just execute the install.sh script; this will install the plugin locally by default. 
 If you want to install the plugin globally (for all the users of the system) you need to use the '-g' option.
 
@@ -21,7 +23,6 @@ Either way, the installation script will ask for admin password to install the g
 
 Use
 ---
-
 This plugin uses pylast (http://code.google.com/p/pylast/) as interface with LastFM and it doesn't depends on the default Rhythmbox's LastFM plugin. Thus, you have to login separately, going to the plugin's Preferences dialog, where you can also specify if you want to sync playcount and loved tracks with your account.
 
 Contact

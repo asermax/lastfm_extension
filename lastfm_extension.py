@@ -20,8 +20,16 @@ import pylast
 from gi.repository import GObject, Gio, Gtk, Peas, RB
 
 import rb
+
+try:
+    import LastFMExtensionFingerprinter
+    from LastFMExtensionFingerprinter import LastFMFingerprinter as Fingerprinter
+except Exception as e:
+    Fingerprinter = e 
+
 import LastFMExtensionKeys as Keys
 import LastFMExtensionUtils
+import LastFMExtensionGui as GUI
 from LastFMExtensionUtils import asynchronous_call as async, notify
 from LastFMExtensionGui import ConfigDialog
 
@@ -51,11 +59,11 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         GObject.Object.__init__(self)
         self.settings = Gio.Settings.new(Keys.PATH)
 
-    def do_activate(self):
+    def do_activate(self):      
         #obtenemos el shell y el player
         shell = self.object
         player = shell.props.shell_player
-
+        
         #inicializamos el modulo de notificacion
         LastFMExtensionUtils.init( rb.find_plugin_file( self, LASTFM_ICON ) )
 
@@ -95,17 +103,17 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         self.ban_id = action_ban.connect( 'activate', self.ban_track)
 
         #agregamos el action al action group
-        self.action_group.add_action( action_ban )
-
+        self.action_group.add_action( action_ban )                      
+                                                      
         #insertamos el action group y guardamos el ui_id
         manager.insert_action_group( self.action_group, -1 )
         self.ui_id = manager.add_ui_from_string( ui_str )
-
+        
         #disableamos los botones
-        self.enable_buttons( player.get_playing_entry(), self.settings ) 
-
+        self.enable_buttons( player.get_playing_entry(), self.settings )        
+                       
         #updateamos la ui
-        manager.ensure_update()        
+        manager.ensure_update()    
         
         #guardamos la db como atributo
         self.db = shell.get_property('db')
@@ -120,39 +128,60 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
                                    self.settings ) )
               
         #conectamos la señal para conectar o desconectar
-        self.settings.connect( 'changed::connected', self.conection_changed )      
+        self.settings.connect( 'changed::%s' % Keys.CONNECTED, 
+                                self.conection_changed )      
         
         #conectamos una señal con la setting de play count para
         #activar/desactivar la funcionalidad cuando sea necesario
-        self.playcount_id = None
         self.settings.connect( 'changed::%s' % Keys.PLAY_COUNT,
                                 self.connect_playcount )
                                               
         #conectamos una señal con la setting de loved para activar/desactivar
         #la funcionalidad cuando sea necesario
-        self.loved_id = None
-        self.settings.connect( 'changed::%s' % Keys.LOVED, self.connect_loved )        
+        self.settings.connect( 'changed::%s' % Keys.LOVED, self.connect_loved ) 
+        
+        #conectamos la señal del fingerprinter para activarlo/desactivarlo
+        self.settings.connect( 'changed::%s' % Keys.FINGERPRINTER, 
+                                        self.activate_fingerprinter, manager )              
         
         #inicializamos la network si estan los datos disponibles
-        self.conection_changed( self.settings, Keys.CONNECTED )           
-                           
-        
-    def do_deactivate(self):
+        self.conection_changed( self.settings, Keys.CONNECTED )        
+    
+        #inicializamos el fingerprinter        
+        self.activate_fingerprinter( self.settings, Keys.FINGERPRINTER, manager )   
+                     
+    def do_deactivate(self):    
         shell = self.object
+        
+        #variables que pueden no estar inicializadas
+        try:
+            self.ui_cm
+        except:
+            self.ui_cm = None
+            
+        try:
+            self.fingerprinter
+        except:
+            self.fingerprinter = None
 
         #destruimos la ui
         manager = shell.props.ui_manager
         manager.remove_ui(self.ui_id)
         manager.remove_action_group(self.action_group)
+                
+        if self.ui_cm:
+            manager.remove_action_group( self.finger_action_group )
+            manager.remove_ui( self.ui_cm )
+        
         manager.ensure_update()
         
-        #desconectamos las señal de playcount y loved si estan conectado
+        #desconectamos las señales
         if self.playcount_id:
             self.player.disconnect( self.playcount_id )
         
         if self.loved_id:
         	self.player.disconnect( self.loved_id )
-
+       
         #desconectamos las señales de botones
         self.player.disconnect( self.benable_id )
         self.player.disconnect( self.love_id )
@@ -162,7 +191,12 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         del self.db
         del self.player
         del self.action_group
-        del self.settings
+        del self.settings        
+        
+        #borramos el fingerprinter si existe
+        if self.fingerprinter:
+            del self.finger_action_group
+            del self.fingerprinter
         
         #borramos la network si existe
         if self.network:
@@ -233,9 +267,14 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
     def enable_buttons( self, entry, settings ):
         enable = settings[Keys.CONNECTED] and entry is not None
     
-        self.action_group.set_property( 'sensitive', enable )      	
+        self.action_group.set_property( 'sensitive', enable )           	
 
     def connect_playcount( self, settings, key ):
+        try:
+            self.playcount_id
+        except:
+            self.playcount_id = None
+    
         #si la opcion esta habilitada, conectamos la señal
         if settings[key] and self.settings[Keys.CONNECTED]:
             self.playcount_id = self.player.connect( 'playing-changed', 
@@ -264,7 +303,12 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             self.db.entry_set( entry, RB.RhythmDBPropType.PLAY_COUNT, playcount )  
             self.db.commit()
             
-    def connect_loved( self, settings, key ):
+    def connect_loved( self, settings, key ):   
+        try:
+            self.loved_id
+        except:
+            self.loved_id = None
+    
 		#si la opcion esta habilitada, conectamos la señal
         if settings[key] and self.settings[Keys.CONNECTED]:
             self.loved_id = self.player.connect( 'playing-changed',
@@ -289,6 +333,62 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
     	if type(loved) is bool and loved:
     		self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)   	 
     		self.db.commit()     
+    		
+    def activate_fingerprinter( self, settings, key, manager ):           
+        try:
+            self.fingerprinter
+        except:
+            self.fingerprinter = None
+        
+        if settings[key] and isinstance( Fingerprinter, Exception ):
+            #this means the lastfp module isn't present
+            settings[key] = False
+            GUI.show_error_message( Fingerprinter.message )  
+        
+        elif settings[key]:         
+            #creamos el fingerprinter
+            self.fingerprinter = Fingerprinter( self )
+        
+            #agregamos la action para el fingerprinter
+            self.finger_action_group = Gtk.ActionGroup( 
+                                            'LastFMExtensionFingerprinter' )
+            action_fingerprint = Gtk.Action('FingerprintSong',
+                                            _('_Fingerprint Song'),
+                                            _("Get this song fingerprinted."),
+                                            None)
+            icon = Gio.FileIcon.new( Gio.File.new_for_path( 
+                                rb.find_plugin_file( self, LASTFM_ICON ) ) )
+            action_fingerprint.set_gicon( icon )      
+            
+            action_fingerprint.connect( 'activate', self.fingerprint_song )
+            
+            self.finger_action_group.add_action( action_fingerprint ) 
+            manager.insert_action_group( self.finger_action_group, -1 )
+            
+            #agregamos los menues contextuales
+            self.ui_cm = manager.add_ui_from_string( 
+                                  LastFMExtensionFingerprinter.ui_context_menu ) 
+        elif self.fingerprinter:      
+            manager.remove_action_group( self.finger_action_group )
+            manager.remove_ui( self.ui_cm )        
+                        
+            del self.finger_action_group
+            del self.ui_cm
+            del self.fingerprinter
+            		
+        manager.ensure_update()                   
+            
+    def get_selected_songs( self ):
+        shell = self.object
+        
+        page = shell.props.selected_page		
+		selected = page.get_entry_view().get_selected_entries()
+		
+		return selected
+		
+    def fingerprint_song( self, _ ):
+        for entry in self.get_selected_songs():
+            self.fingerprinter.request_fingerprint( entry )
             
     def conection_changed( self, settings, key ):
         if settings[key]:

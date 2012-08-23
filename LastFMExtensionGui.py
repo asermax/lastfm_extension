@@ -28,6 +28,17 @@ LOGIN_LABEL = 'labelLogin'
 LOGIN_BUTTON = 'buttonLogin'
 PLAYCOUNT_CHECKBOX = 'checkbuttonPlayCount'
 LOVED_CHECKBOX = 'checkbuttonLoved'
+FINGERPRINTER_CHECKBOX = 'checkbuttonFingerprinter'
+
+'''
+Función auxiliar para mostrar mensajes de error con un dialog.
+'''
+def show_error_message( message ):
+	dialog = Gtk.MessageDialog( None, 0, Gtk.MessageType.ERROR,
+								Gtk.ButtonsType.CLOSE, message )
+	
+	dialog.run()
+	dialog.destroy()
 
 '''
 Diálogo que permite obtener y persistir ciertas configuraciones,
@@ -61,6 +72,7 @@ class ConfigDialog( GObject.Object, PeasGtk.Configurable ):
         button = builder.get_object( LOGIN_BUTTON )
         playcount_checkbox = builder.get_object( PLAYCOUNT_CHECKBOX )
         loved_checkbox = builder.get_object( LOVED_CHECKBOX )
+        fingerprint_checkbox = builder.get_object( FINGERPRINTER_CHECKBOX )
             
         #preparamos la gui   
         label.set_text( label_text )  
@@ -74,10 +86,15 @@ class ConfigDialog( GObject.Object, PeasGtk.Configurable ):
         loved_checkbox.set_active( self.settings[Keys.LOVED] )    
         loved_checkbox.connect( 'toggled', self._toggle, Keys.LOVED )                           
                     
+        fingerprint_checkbox.set_active( self.settings[Keys.FINGERPRINTER] )    
+        fingerprint_checkbox.connect( 'toggled', 
+        								  self._toggle, Keys.FINGERPRINTER ) 
+                    
         return builder.get_object( DIALOG )
     
     def _toggle( self, checkbutton, key ):
         self.settings[key] = checkbutton.get_active()
+        checkbutton.set_active( self.settings[key] )
        
     def _login( self, button, label ):               
         #mostramos la pagina para aceptar la conexion
