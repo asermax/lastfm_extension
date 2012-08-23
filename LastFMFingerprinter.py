@@ -45,6 +45,9 @@ BOX = 'songe-selection-dialog-vbox'
 STATUS_BOX = 'statusBox'
 ACTION_SAVE = 'actionSave'
 
+#rhythmbox magic number for days in a year(??????)
+DAYS = 365.2
+
 ui_context_menu = """
 <ui>
   <popup name="BrowserSourceViewPopup">
@@ -304,7 +307,7 @@ class LastFMFingerprinter:
             
             if date.strip() != '':
                 info.append( (RB.RhythmDBPropType.DATE, 
-                              int( date.split()[2][:-1] )) )
+                              int( date.split()[2][:-1] ) * DAYS) )
             
             #album artist
             info.append( (RB.RhythmDBPropType.ALBUM_ARTIST, 
@@ -332,4 +335,5 @@ class LastFMFingerprinter:
             idle_add( self.db.entry_set, entry,*prop )
             
         idle_add( self.db.commit )
+
     
