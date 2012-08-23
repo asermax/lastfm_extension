@@ -22,6 +22,7 @@ If you want to install the plugin globally (for all the users of the system) you
 Either way, the installation script will ask for admin password to install the glib-schema used to save the plugin settings.
 
 ##About [pylastfp](http://pypi.python.org/pypi/pylastfp/0.1)
+To enable the fingerprinting feature on this plugin, you need to install pylastfp.
 On debian based distributions, to install this package you should use the following commands on a terminal:
 ```
 sudo apt-get install pip libfftw3-dev libsamplerate0-dev
@@ -39,6 +40,14 @@ After installing it, you should be able to enable the fingerprinter on the plugi
 Use
 ---
 This plugin uses pylast (http://code.google.com/p/pylast/) as interface with LastFM and it doesn't depends on the default Rhythmbox's LastFM plugin. Thus, you have to login separately, going to the plugin's Preferences dialog, where you can also specify if you want to sync playcount and loved tracks with your account.
+
+Credits
+-------
+This plugin makes use of the following libraries:
+* [pylast](http://code.google.com/p/pylast/), a wonderful python library that allows you to painlessly interact with [Last.fm API](http://www.last.fm/api).
+* [pylastfp](http://pypi.python.org/pypi/pylastfp/0.1), a library that binds the Last.fm's fingerprinting library and provides an easy access to it's functions.
+
+Also, some of the ideas on this plugin came from [beets](https://github.com/sampsyo/beets), and extremely good media library management system; for instance, the genre guessing mechanism on the plugin fingerprinting feature is based on lastgenre's beets plugin.
 
 Contact
 ------
