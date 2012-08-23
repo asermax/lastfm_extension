@@ -12,7 +12,7 @@ Extras!
 Besides the love and ban buttons, this plugins haves some extras, which you can activate from the plugin configuration dialog:
 * Playcount synchronization. (It can only retrieve the playcount from LastFM, not change it)
 * Loved track synchronization. (It will add 5 stars to the current track if it's currently marked as loved on your account)
-* Add an option to fingerprint your songs and match them against the Last.fm database! Initialy, this extension can retrieve the title and artist name of your tracks, but you can also fetch extra info (as it's album name, track number, realese year, playcount, rating and genre) by checking the "Fetch extra info" checkbox (this will be done asynchronously in the background, once the info is fetched, your track will be updated). This handy feature requires [lastfp](http://pypi.python.org/pypi/pylastfp/0.1) to work.
+* Add an option to fingerprint your songs and match them against the Last.fm database! Initialy, this extension can retrieve the title and artist name of your tracks, but you can also fetch extra info (as it's album name, track number, realese year, playcount, rating and genre) by checking the "Fetch extra info" checkbox (this will be done asynchronously in the background, once the info is fetched, your track will be updated). This handy feature requires [pylastfp](http://pypi.python.org/pypi/pylastfp/0.1) to work.
 
 Installation
 -----------
@@ -20,6 +20,21 @@ To install, just execute the install.sh script; this will install the plugin loc
 If you want to install the plugin globally (for all the users of the system) you need to use the '-g' option.
 
 Either way, the installation script will ask for admin password to install the glib-schema used to save the plugin settings.
+
+##About [pylastfp](http://pypi.python.org/pypi/pylastfp/0.1)
+On debian based distributions, to install this package you should use the following commands on a terminal:
+```
+sudo apt-get install pip libfftw3-dev libsamplerate0-dev
+
+sudo pip install pylastfp
+```
+
+In the case you already installed pylastfp and want to upgrade it:
+```
+sudo pip install pylastfp --upgrade
+```
+
+After installing it, you should be able to enable the fingerprinter on the plugins preferences.
 
 Use
 ---
