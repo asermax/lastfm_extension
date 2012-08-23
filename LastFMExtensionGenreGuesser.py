@@ -1,6 +1,9 @@
 # -*- Mode: python; coding: utf-8; tab-width: 4; indent-tabs-mode: nil; -*-
 #
+# Copyright 2011, Adrian Sampson.
 # Copyright (C) 2012 - Carrasco Agustin
+#
+# This module is based on beet's lastfmgenre plugin (http://beets.radbox.org/).
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
