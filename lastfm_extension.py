@@ -129,7 +129,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
               
         #conectamos la señal para conectar o desconectar
         self.settings.connect( 'changed::%s' % Keys.CONNECTED, 
-                                self.conection_changed )      
+                                self.conection_changed, manager )      
         
         #conectamos una señal con la setting de play count para
         #activar/desactivar la funcionalidad cuando sea necesario
@@ -145,10 +145,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
                                         self.activate_fingerprinter, manager )              
         
         #inicializamos la network si estan los datos disponibles
-        self.conection_changed( self.settings, Keys.CONNECTED )        
-    
-        #inicializamos el fingerprinter        
-        self.activate_fingerprinter( self.settings, Keys.FINGERPRINTER, manager )   
+        self.conection_changed( self.settings, Keys.CONNECTED, manager )   
                      
     def do_deactivate(self):    
         shell = self.object
@@ -334,7 +331,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
     		self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)   	 
     		self.db.commit()     
     		
-    def activate_fingerprinter( self, settings, key, manager ):           
+    def activate_fingerprinter( self, settings, key, manager ):       
         try:
             self.fingerprinter
         except:
@@ -345,7 +342,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             settings[key] = False
             GUI.show_error_message( Fingerprinter.message )  
         
-        elif settings[key]:         
+        elif settings[key] and not self.fingerprinter:         
             #creamos el fingerprinter
             self.fingerprinter = Fingerprinter( self )
         
@@ -368,7 +365,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             #agregamos los menues contextuales
             self.ui_cm = manager.add_ui_from_string( 
                                   LastFMExtensionFingerprinter.ui_context_menu ) 
-        elif self.fingerprinter:      
+        else:      
             manager.remove_action_group( self.finger_action_group )
             manager.remove_ui( self.ui_cm )        
                         
@@ -390,7 +387,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         for entry in self.get_selected_songs():
             self.fingerprinter.request_fingerprint( entry )
             
-    def conection_changed( self, settings, key ):
+    def conection_changed( self, settings, key, manager ):
         if settings[key]:
             self.network = pylast.LastFMNetwork(
                 api_key=Keys.API_KEY,
@@ -401,4 +398,5 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             
         self.connect_playcount( self.settings, Keys.PLAY_COUNT )
         self.connect_loved( self.settings, Keys.LOVED )
+        self.activate_fingerprinter( self.settings, Keys.FINGERPRINTER, manager )
 
