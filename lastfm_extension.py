@@ -22,8 +22,8 @@ from gi.repository import GObject, Gio, Gtk, Peas, RB
 import rb
 
 try:
-    import LastFMFingerprinter
-    from LastFMFingerprinter import LastFMFingerprinter as Fingerprinter
+    import LastFMExtensionFingerprinter
+    from LastFMExtensionFingerprinter import LastFMFingerprinter as Fingerprinter
 except Exception as e:
     Fingerprinter = e 
 
@@ -367,7 +367,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             
             #agregamos los menues contextuales
             self.ui_cm = manager.add_ui_from_string( 
-                                       LastFMFingerprinter.ui_context_menu ) 
+                                  LastFMExtensionFingerprinter.ui_context_menu ) 
         elif self.fingerprinter:      
             manager.remove_action_group( self.finger_action_group )
             manager.remove_ui( self.ui_cm )        

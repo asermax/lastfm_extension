@@ -24,6 +24,7 @@ import math
 import rb
 
 import LastFMExtensionKeys as Keys
+from LastFMExtensionGenreGuesser import LastFMGenreGuesser
 from LastFMExtensionUtils import asynchronous_call as async, idle_add
 
 #try to import lastfp
@@ -84,19 +85,23 @@ class LastFMFingerprinter:
     internal properties used on the fingerprinting process.
     '''
     def __init__( self, plugin ):
-        self.settings = Gio.Settings.new( Keys.PATH )
+        #save the settings
+        self.settings = plugin.settings
+        
+        #rhythmbox database
+        self.db = plugin.db
         
         #get the builder file path
         self.builder_file = rb.find_plugin_file( plugin, DIALOG_BUILDER_FILE )
         
         #save the matcher path
-        self.matcher_path = rb.find_plugin_file( plugin, MATCHER )
-        
-        #rhythmbox database
-        self.db = plugin.db
-        
+        self.matcher_path = rb.find_plugin_file( plugin, MATCHER )       
+                
         #lastfm network
         self.network = plugin.network
+        
+        #lastfm genre guesser
+        self.genre_guesser = LastFMGenreGuesser( plugin )
         
         #queue for requests
         self.queue = []
@@ -291,6 +296,12 @@ class LastFMFingerprinter:
         #play count
         info.append( (RB.RhythmDBPropType.PLAY_COUNT, 
                       track.get_playcount( True )) )
+                      
+        #genre
+        genre = self.genre_guesser.guess( track )
+        
+        if genre:
+            info.append( (RB.RhythmDBPropType.GENRE, genre.encode( 'utf-8' )) )
                    
         #loved track (rating 5 stars)           
         if track.is_loved():
@@ -335,5 +346,3 @@ class LastFMFingerprinter:
             idle_add( self.db.entry_set, entry,*prop )
             
         idle_add( self.db.commit )
-
-    
