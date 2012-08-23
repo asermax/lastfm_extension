@@ -182,7 +182,7 @@ class LastFMFingerprinter:
     This method appends toggles buttons to the dialog, with the info of the 
     matched tracks and connects the signal to save the selected option.
     '''
-    def _append_options( self, result, entry, main_box, status_box, action_save ):        
+    def _append_options( self, result, entry, main_box, status_box, action_save ):
         #box which will contain the toggles   
         vbox = Gtk.VBox()
         
@@ -197,14 +197,14 @@ class LastFMFingerprinter:
                 label = '%d%%: %s' % (math.ceil( track.rank * 100 ), str( track ))
             
                 if not options:
-                    toggle = Gtk.RadioButton( label=label )   
-                    options.append( toggle )
+                    toggle = Gtk.RadioButton( label=label )                       
                 else:
                     toggle = Gtk.RadioButton( label=label )
-                    toggle.join_group( options[0] )         
+                    toggle.join_group( options[0] )  
+                    
+                options.append( toggle )       
                 
-                toggle.set_mode( False )    
-                
+                toggle.set_mode( False ) 
                 vbox.pack_start( toggle, True, True, 0 )  
              
             #also, add a checkbox to ask if fetch extra info
@@ -251,15 +251,16 @@ class LastFMFingerprinter:
     '''
     Callback for saving the selected option.
     '''                   
-    def _save_selected( self, _, entry, tracks, dialog, options, extra ):        
+    def _save_selected( self, _, entry, tracks, dialog, options, extra ):
         for option in options:
             if option.get_active():
                 track = tracks[options.index( option )]
                 
                 self.db.entry_set( entry, RB.RhythmDBPropType.ARTIST, 
-                                          str(track.get_artist()) ) 
+                                          track.get_artist().get_name().encode( 
+                                                                      'utf8' ) ) 
                 self.db.entry_set( entry, RB.RhythmDBPropType.TITLE, 
-                                          str(track.get_title()) ) 
+                                          track.get_title().encode( 'utf8' ) ) 
                 self.db.commit()
                 
                 #asynchronously retrieve extra data
@@ -300,7 +301,8 @@ class LastFMFingerprinter:
         
         if album:
             #album name
-            info.append( (RB.RhythmDBPropType.ALBUM, str( album.get_name() )) )
+            info.append( (RB.RhythmDBPropType.ALBUM, 
+                          album.get_name().encode( 'utf-8' )) )
             
             #release date (year)
             date = album.get_release_date()
@@ -311,7 +313,7 @@ class LastFMFingerprinter:
             
             #album artist
             info.append( (RB.RhythmDBPropType.ALBUM_ARTIST, 
-                          str( album.get_artist().get_name() )) )
+                          album.get_artist().get_name().encode( 'utf-8' ) ) )
                           
             #track number
             tracks = album.get_tracks()
@@ -328,7 +330,7 @@ class LastFMFingerprinter:
     Callback used after extra info is fetched, to save it to the properties of 
     the entry.
     '''
-    def _delayed_properties_save( self, info, entry ):        
+    def _delayed_properties_save( self, info, entry ):
         for prop in info:
             idle_add( self.db.entry_set, entry,*prop )
             
