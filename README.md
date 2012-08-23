@@ -12,7 +12,7 @@ Extras!
 Besides the love and ban buttons, this plugins haves some extras, which you can activate from the plugin configuration dialog:
 * Playcount synchronization. (It can only retrieve the playcount from LastFM, not change it)
 * Loved track synchronization. (It will add 5 stars to the current track if it's currently marked as loved on your account)
-* Add an option to fingerprint your songs and match them against the Last.fm database! Initialy, this extension can retrieve the title and artist name of your tracks, but you can also fetch extra info (as it's album name, track number, realese year, playcount, rating and genre) by checking the "Fetch extra info" checkbox (this will be done asynchronously in the background, once the info is fetched, your track will be updated). This handy feature requires [lastfp](http://pypi.python.org/pypi/pylastfp/0.1) to work.
+* Add an option to fingerprint your songs and match them against the Last.fm database! Initialy, this extension can retrieve the title and artist name of your tracks, but you can also fetch extra info (as it's album name, track number, realese year, playcount, rating and genre) by checking the "Fetch extra info" checkbox (this will be done asynchronously in the background, once the info is fetched, your track will be updated). This handy feature requires [pylastfp](http://pypi.python.org/pypi/pylastfp/0.1) to work.
 
 Installation
 -----------
@@ -21,9 +21,33 @@ If you want to install the plugin globally (for all the users of the system) you
 
 Either way, the installation script will ask for admin password to install the glib-schema used to save the plugin settings.
 
+##About [pylastfp](http://pypi.python.org/pypi/pylastfp/0.1)
+To enable the fingerprinting feature on this plugin, you need to install pylastfp.
+On debian based distributions, to install this package you should use the following commands on a terminal:
+```
+sudo apt-get install pip libfftw3-dev libsamplerate0-dev
+
+sudo pip install pylastfp
+```
+
+In the case you already installed pylastfp and want to upgrade it:
+```
+sudo pip install pylastfp --upgrade
+```
+
+After installing it, you should be able to enable the fingerprinter on the plugins preferences.
+
 Use
 ---
 This plugin uses pylast (http://code.google.com/p/pylast/) as interface with LastFM and it doesn't depends on the default Rhythmbox's LastFM plugin. Thus, you have to login separately, going to the plugin's Preferences dialog, where you can also specify if you want to sync playcount and loved tracks with your account.
+
+Credits
+-------
+This plugin makes use of the following libraries:
+* [pylast](http://code.google.com/p/pylast/), a wonderful python library that allows you to painlessly interact with [Last.fm API](http://www.last.fm/api).
+* [pylastfp](http://pypi.python.org/pypi/pylastfp/0.1), a library that binds the Last.fm's fingerprinting library and provides an easy access to it's functions.
+
+Also, some of the ideas on this plugin came from [beets](https://github.com/sampsyo/beets), and extremely good media library management system; for instance, the genre guessing mechanism on the plugin fingerprinting feature is based on lastgenre's beets plugin.
 
 Contact
 ------
