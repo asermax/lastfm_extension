@@ -328,9 +328,7 @@ class LastFMFingerprinter:
     Callback used after extra info is fetched, to save it to the properties of 
     the entry.
     '''
-    def _delayed_properties_save( self, info, entry ):    
-        print info
-    
+    def _delayed_properties_save( self, info, entry ):        
         for prop in info:
             idle_add( self.db.entry_set, entry,*prop )
             
