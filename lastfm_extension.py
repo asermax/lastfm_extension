@@ -273,7 +273,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             self.playcount_id = None
     
         #si la opcion esta habilitada, conectamos la señal
-        if settings[key] and self.settings[Keys.CONNECTED]:
+        if settings[key] and settings[Keys.CONNECTED]:
             self.playcount_id = self.player.connect( 'playing-changed', 
                                                      self.playcount_updater )
         #sino, quitamos la señal
@@ -307,7 +307,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             self.loved_id = None
     
 		#si la opcion esta habilitada, conectamos la señal
-        if settings[key] and self.settings[Keys.CONNECTED]:
+        if settings[key] and settings[Keys.CONNECTED]:
             self.loved_id = self.player.connect( 'playing-changed',
                                                  self.loved_updater )
         #sino, quitamos la señal
@@ -353,7 +353,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             del self.fingerprinter
         
         #if there isn't a fingerprinter and it's supposed to be, create it
-        elif settings[key]: 
+        elif settings[key] and settings[Keys.CONNECTED]: 
             #creamos el fingerprinter
             self.fingerprinter = Fingerprinter( self )
         
@@ -395,11 +395,11 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             self.network = pylast.LastFMNetwork(
                 api_key=Keys.API_KEY,
                 api_secret=Keys.API_SECRET,
-                session_key=self.settings[Keys.SESSION] )
+                session_key=settings[Keys.SESSION] )
         else:
             self.network = None
             
-        self.connect_playcount( self.settings, Keys.PLAY_COUNT )
-        self.connect_loved( self.settings, Keys.LOVED )
-        self.activate_fingerprinter( self.settings, Keys.FINGERPRINTER, manager )
+        self.connect_playcount( settings, Keys.PLAY_COUNT )
+        self.connect_loved( settings, Keys.LOVED )
+        self.activate_fingerprinter( settings, Keys.FINGERPRINTER, manager )
 
