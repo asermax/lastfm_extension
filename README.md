@@ -21,11 +21,11 @@ If you want to install the plugin globally (for all the users of the system) you
 
 Either way, the installation script will ask for admin password to install the glib-schema used to save the plugin settings.
 
-##About [pylastfp](http://pypi.python.org/pypi/pylastfp/0.1)
+###About [pylastfp](http://pypi.python.org/pypi/pylastfp/0.1)
 To enable the fingerprinting feature on this plugin, you need to install pylastfp.
-On debian based distributions, to install this package you should use the following commands on a terminal:
+On debian based distributions, you can let the installer script do it for you adding the '--fingerprint-support' flag, or you can do it manually by issuing the following commands on a terminal:
 ```
-sudo apt-get install pip libfftw3-dev libsamplerate0-dev
+sudo apt-get install python-pip libfftw3-dev libsamplerate0-dev
 
 sudo pip install pylastfp
 ```
