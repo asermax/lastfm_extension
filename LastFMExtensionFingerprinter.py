@@ -287,7 +287,7 @@ class LastFMFingerprinter:
         - Release Year (if available)
         - Album Artist
         - Track Number
-    - TODO: Genre
+        - Track Genre
     '''    
     def _fetch_extra_info( self, track ):
         #list for extra info with it's db keys
