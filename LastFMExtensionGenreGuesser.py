@@ -27,26 +27,44 @@ from LastFMExtensionUtils import asynchronous_call as async
 #constants
 GENRES_FILE = 'genres.txt'
 
+'''
+Genre guesser based on beets' lastgenre plugin. It uses Last.fm tags on a track
+to guess the track genre, given a whitelist of genres.
+'''
 class LastFMGenreGuesser( object ):
+    '''
+    Initialises the guesser, needs the plugin to find the whitelist file.
+    '''
     def __init__( self, plugin ):        
-        #load genres whitelist
+        #load genres whitelist asynchronously
         genres_file = rb.find_plugin_file( plugin, GENRES_FILE )
         self.whitelist = set()
         async( self._load_whitelist )( genres_file )      
-            
+    
+    '''
+    Loads the whitelist file.
+    '''
     def _load_whitelist( self, path ):
         with open( path ) as f:
             for line in f:
                 line = line.decode( 'utf8' ).strip().lower()
                 if line:
                     self.whitelist.add( line )
-        
+    
+    '''
+    Main interface of the guesser. Given a track, guesses it's genre, using
+    Last.fm tags.
+    '''    
     def guess( self, track ):
         tags = self._get_tags( track )
         genre = self._genre_from_tags( tags )
         
         return genre
-        
+     
+    '''
+    Retrieves the track tags or return None in case it doesn't find it or fails
+    to retrieve them.
+    '''   
     def _get_tags( self, track ):
         try:
             res = track.get_top_tags()
@@ -59,7 +77,11 @@ class LastFMGenreGuesser( object ):
                 el = el.item
             tags.append( el.get_name() )
         return tags
-        
+    
+    '''
+    Crossreferences a list of tags with the whitelisted genres and returns the
+    first match.
+    '''    
     def _genre_from_tags( self, tags ):
         for tag in tags:
             if tag.lower() in self.whitelist:

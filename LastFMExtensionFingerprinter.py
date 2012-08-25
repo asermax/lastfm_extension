@@ -16,14 +16,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from gi.repository import Gio, RB, Gtk
+from gi.repository import RB, Gtk
 from urlparse import urlparse
 from urllib import unquote
 from subprocess import check_output, CalledProcessError
 import math
 import rb
 
-import LastFMExtensionKeys as Keys
 from LastFMExtensionGenreGuesser import LastFMGenreGuesser
 from LastFMExtensionUtils import asynchronous_call as async, idle_add
 
@@ -139,23 +138,23 @@ class LastFMFingerprinter:
         #create a new builder over the builder_file
         builder = Gtk.Builder()
         builder.add_from_file( self.builder_file )
-		
-		#connect signals
-		builder.connect_signals( self )
-		
-		#show the dialog
-		dialog = builder.get_object( DIALOG_NAME )
-		dialog.set_title( 'Matches for %s - %s' % 
+
+        #connect signals
+        builder.connect_signals( self )
+
+        #show the dialog
+        dialog = builder.get_object( DIALOG_NAME )
+        dialog.set_title( 'Matches for %s - %s' % 
 		                    ( entry.get_string( RB.RhythmDBPropType.ARTIST ),
 		                      entry.get_string( RB.RhythmDBPropType.TITLE ) ) )
-		dialog.present()
-		
-		#get the status box and the box
-		main_box = builder.get_object( BOX )
-		status_box = builder.get_object( STATUS_BOX )
-		action_save = builder.get_object( ACTION_SAVE )
-		
-		return main_box, status_box, action_save
+        dialog.present()
+
+        #get the status box and the box
+        main_box = builder.get_object( BOX )
+        status_box = builder.get_object( STATUS_BOX )
+        action_save = builder.get_object( ACTION_SAVE )
+        
+        return main_box, status_box, action_save
     
     '''
     This method encapsulates the fingerprinting and matching process.

@@ -177,7 +177,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             self.player.disconnect( self.playcount_id )
         
         if self.loved_id:
-        	self.player.disconnect( self.loved_id )
+            self.player.disconnect( self.loved_id )
        
         #desconectamos las señales de botones
         self.player.disconnect( self.benable_id )
@@ -203,7 +203,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         entry = self.player.get_playing_entry()
         
         if not entry or not self.settings[Keys.CONNECTED]:
-        	return ( None, None )
+            return ( None, None )
 
         title = unicode( entry.get_string(RB.RhythmDBPropType.TITLE ), 'utf-8' )
         artist = unicode( entry.get_string(RB.RhythmDBPropType.ARTIST ), 'utf-8' )
@@ -215,7 +215,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         entry, track = self.get_track()
         
         if not entry or not track:
-        	return
+            return
 
         async( track.love, self.track_loved, track, entry )()              
                 
@@ -240,7 +240,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         entry, track = self.get_track()
         
         if not entry or not track:
-        	return
+            return
 
         async( track.ban, self.track_banned, track, entry )()  
         
@@ -281,19 +281,19 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             self.player.disconnect( self.playcount_id )
 
     def playcount_updater ( self, sp, playing ):    
-    	if not playing:
-    		return
-    	
-    	entry, track = self.get_track()
-    	
-    	if not entry or not track:
-        	return
-    	
-    	#obtenemos la playcount de lastfm asincronamente
-    	async( track.get_playcount, self.update_playcount, entry )( True )   
+        if not playing:
+            return
+    
+        entry, track = self.get_track()
+        
+        if not entry or not track:
+            return
+    
+        #obtenemos la playcount de lastfm asincronamente
+        async( track.get_playcount, self.update_playcount, entry )( True )   
         
     def update_playcount( self, playcount, entry ):
-    	#get current playcount     	      
+        #get current playcount     	      
         old_playcount = entry.get_ulong( RB.RhythmDBPropType.PLAY_COUNT )
                 
         if playcount and type(playcount) is int and old_playcount < playcount:
@@ -306,7 +306,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         except:
             self.loved_id = None
     
-		#si la opcion esta habilitada, conectamos la señal
+        #si la opcion esta habilitada, conectamos la señal
         if settings[key] and self.settings[Keys.CONNECTED]:
             self.loved_id = self.player.connect( 'playing-changed',
                                                  self.loved_updater )
@@ -315,22 +315,22 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             self.player.disconnect( self.loved_id )
     
     def loved_updater ( self, sp, playing ):  
-    	if not playing:
-    		return
-      	
-    	entry, track = self.get_track()
-    	
-    	if not entry or not track:
-        	return
-    	
-    	#obtenemos el loved asincronamente
-    	async( track.is_loved, self.update_loved, entry )()   
+        if not playing:
+            return
+      
+        entry, track = self.get_track()
+        
+        if not entry or not track:
+            return
+    
+        #obtenemos el loved asincronamente
+        async( track.is_loved, self.update_loved, entry )()   
         
     def update_loved( self, loved, entry ):        
-    	if type(loved) is bool and loved:
-    		self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)   	 
-    		self.db.commit()     
-    		
+        if type(loved) is bool and loved:
+            self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)   	 
+            self.db.commit()     
+    
     def activate_fingerprinter( self, settings, key, manager ):       
         try:
             self.fingerprinter
@@ -372,17 +372,17 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             del self.finger_action_group
             del self.ui_cm
             del self.fingerprinter
-            		
+ 
         manager.ensure_update()                   
             
     def get_selected_songs( self ):
         shell = self.object
         
         page = shell.props.selected_page		
-		selected = page.get_entry_view().get_selected_entries()
-		
-		return selected
-		
+        selected = page.get_entry_view().get_selected_entries()
+
+        return selected
+
     def fingerprint_song( self, _ ):
         for entry in self.get_selected_songs():
             self.fingerprinter.request_fingerprint( entry )

@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA.
 
 from gi.repository import Gtk, Gio, GObject, PeasGtk
-from LastFMExtensionUtils import asynchronous_call as async
 import LastFMExtensionKeys as Keys
 import rb
 import pylast, webbrowser
@@ -34,11 +33,10 @@ FINGERPRINTER_CHECKBOX = 'checkbuttonFingerprinter'
 Función auxiliar para mostrar mensajes de error con un dialog.
 '''
 def show_error_message( message ):
-	dialog = Gtk.MessageDialog( None, 0, Gtk.MessageType.ERROR,
-								Gtk.ButtonsType.CLOSE, message )
-	
-	dialog.run()
-	dialog.destroy()
+    dialog = Gtk.MessageDialog( None, 0, Gtk.MessageType.ERROR,
+                                Gtk.ButtonsType.CLOSE, message )
+    dialog.run()
+    dialog.destroy()
 
 '''
 Diálogo que permite obtener y persistir ciertas configuraciones,
