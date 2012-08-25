@@ -264,7 +264,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
     def enable_buttons( self, entry, settings ):
         enable = settings[Keys.CONNECTED] and entry is not None
     
-        self.action_group.set_property( 'sensitive', enable )           	
+        self.action_group.set_property( 'sensitive', enable )               
 
     def connect_playcount( self, settings, key ):
         try:
@@ -273,7 +273,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             self.playcount_id = None
     
         #si la opcion esta habilitada, conectamos la señal
-        if settings[key] and self.settings[Keys.CONNECTED]:
+        if settings[key] and settings[Keys.CONNECTED]:
             self.playcount_id = self.player.connect( 'playing-changed', 
                                                      self.playcount_updater )
         #sino, quitamos la señal
@@ -283,17 +283,17 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
     def playcount_updater ( self, sp, playing ):    
         if not playing:
             return
-    
+        
         entry, track = self.get_track()
         
         if not entry or not track:
             return
-    
+        
         #obtenemos la playcount de lastfm asincronamente
         async( track.get_playcount, self.update_playcount, entry )( True )   
         
     def update_playcount( self, playcount, entry ):
-        #get current playcount     	      
+        #get current playcount               
         old_playcount = entry.get_ulong( RB.RhythmDBPropType.PLAY_COUNT )
                 
         if playcount and type(playcount) is int and old_playcount < playcount:
@@ -307,7 +307,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             self.loved_id = None
     
         #si la opcion esta habilitada, conectamos la señal
-        if settings[key] and self.settings[Keys.CONNECTED]:
+        if settings[key] and settings[Keys.CONNECTED]:
             self.loved_id = self.player.connect( 'playing-changed',
                                                  self.loved_updater )
         #sino, quitamos la señal
@@ -317,20 +317,20 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
     def loved_updater ( self, sp, playing ):  
         if not playing:
             return
-      
+          
         entry, track = self.get_track()
         
         if not entry or not track:
             return
-    
+        
         #obtenemos el loved asincronamente
         async( track.is_loved, self.update_loved, entry )()   
         
     def update_loved( self, loved, entry ):        
         if type(loved) is bool and loved:
-            self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)   	 
+            self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)        
             self.db.commit()     
-    
+            
     def activate_fingerprinter( self, settings, key, manager ):       
         try:
             self.fingerprinter
@@ -353,7 +353,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             del self.fingerprinter
         
         #if there isn't a fingerprinter and it's supposed to be, create it
-        elif settings[key]: 
+        elif settings[key] and settings[Keys.CONNECTED]: 
             #creamos el fingerprinter
             self.fingerprinter = Fingerprinter( self )
         
@@ -381,11 +381,11 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
     def get_selected_songs( self ):
         shell = self.object
         
-        page = shell.props.selected_page		
+        page = shell.props.selected_page        
         selected = page.get_entry_view().get_selected_entries()
-
+        
         return selected
-
+        
     def fingerprint_song( self, _ ):
         for entry in self.get_selected_songs():
             self.fingerprinter.request_fingerprint( entry )
@@ -395,11 +395,11 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             self.network = pylast.LastFMNetwork(
                 api_key=Keys.API_KEY,
                 api_secret=Keys.API_SECRET,
-                session_key=self.settings[Keys.SESSION] )
+                session_key=settings[Keys.SESSION] )
         else:
             self.network = None
             
-        self.connect_playcount( self.settings, Keys.PLAY_COUNT )
-        self.connect_loved( self.settings, Keys.LOVED )
-        self.activate_fingerprinter( self.settings, Keys.FINGERPRINTER, manager )
+        self.connect_playcount( settings, Keys.PLAY_COUNT )
+        self.connect_loved( settings, Keys.LOVED )
+        self.activate_fingerprinter( settings, Keys.FINGERPRINTER, manager )
 

@@ -14,6 +14,8 @@ Besides the love and ban buttons, this plugins haves some extras, which you can 
 * Loved track synchronization. (It will add 5 stars to the current track if it's currently marked as loved on your account)
 * Add an option to fingerprint your songs and match them against the Last.fm database! Initialy, this extension can retrieve the title and artist name of your tracks, but you can also fetch extra info (as it's album name, track number, realese year, playcount, rating and genre) by checking the "Fetch extra info" checkbox (this will be done asynchronously in the background, once the info is fetched, your track will be updated). This handy feature requires [pylastfp](http://pypi.python.org/pypi/pylastfp/0.1) to work.
 
+**Note:** you need to be logged into your LastFM account for this extras to work. Even if they are activated, they won't take effect until you log in.
+
 Installation
 -----------
 To install, just execute the install.sh script; this will install the plugin locally by default. 
