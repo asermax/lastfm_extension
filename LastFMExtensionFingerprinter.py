@@ -172,7 +172,7 @@ class LastFMFingerprinter:
         #match the song    
         try:    
             fpid = check_output( 
-                        [self.matcher_path, "%s" % path, artist, album, title] )
+                        [self.matcher_path, path, artist, album, title] )
                 
             result = network.get_tracks_by_fpid( fpid )
                         
