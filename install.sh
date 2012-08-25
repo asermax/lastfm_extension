@@ -16,7 +16,7 @@ EOF
 ########################### OPTIONS PARSING #################################
 
 #parse options
-TMP=`getopt --name=$0 -a --longoptions=local,global,help -o l,g,h -- $@`
+TMP=`getopt --name=$0 -a --longoptions=local,global,help,fingerprint-support -o l,g,h -- $@`
 
 if [[ $? == 1 ]]
 then
@@ -35,6 +35,9 @@ until [[ $1 == -- ]]; do
         -g|--global)
             LOCAL=false
             ;;
+        --fingerprint-support)
+            FINGERPRINT=true
+            ;;
         -h|--help)
             echo "$usage"
             exit
@@ -46,8 +49,7 @@ shift # remove the '--', now $1 positioned at first argument if any
 
 #default values
 LOCAL=${LOCAL:=true}
-
-echo $LOCAL
+FINGERPRINT=${FINGERPRINT:=false}
 
 ########################## START INSTALLATION ################################
 
@@ -59,12 +61,14 @@ SCRIPT_PATH=${0%`basename "$0"`}
 MATCHER="matcher.py"
 
 #install the glib schema
-sudo mv "${PLUGIN_PATH}${GLIB_SCHEME}" "$GLIB_DIR"
+echo "Installing glib schemas (admin password needed):"
+sudo cp "${PLUGIN_PATH}${GLIB_SCHEME}" "$GLIB_DIR"
 sudo glib-compile-schemas "$GLIB_DIR"
 
 #install the plugin; the install path depends on the install mode
 if [[ $LOCAL == true ]]
 then
+    echo "Installing plugin locally"
     PLUGIN_PATH="/home/${USER}/.local/share/rhythmbox/plugins/lastfm_extension/"
     
     #build the dirs
@@ -79,6 +83,7 @@ then
     #remove the install script from the dir (not needed)
     rm "${PLUGIN_PATH}${SCRIPT_NAME}"
 else
+    echo "Installing plugin globally"
     PLUGIN_PATH="/usr/lib/rhythmbox/plugins/lastfm_extension/"
     
     #build the dirs
@@ -93,3 +98,20 @@ else
     #remove the install script from the dir (not needed)
     sudo rm "${PLUGIN_PATH}${SCRIPT_NAME}"
 fi
+
+#try to install pylastfp
+if [[ $FINGERPRINT == true ]]
+then
+    echo -n "Installing libraries needed for fingerprint support... "
+    sudo apt-get install python-pip libfftw3-dev libsamplerate0-dev > /dev/null 2>&1 && pip install pylastfp > /dev/null 2>&1
+    
+    if [[ $? == 0 ]]
+    then
+        echo "Done"
+    else
+        echo "Failed"
+    fi
+fi
+
+echo "Finished installing the plugin. Enjoy :]"
+
