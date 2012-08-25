@@ -337,12 +337,23 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         except:
             self.fingerprinter = None
         
+        #show error if the module couldn't be loaded
         if settings[key] and isinstance( Fingerprinter, Exception ):
             #this means the lastfp module isn't present
             settings[key] = False
             GUI.show_error_message( Fingerprinter.message )  
         
-        elif settings[key] and not self.fingerprinter:         
+        #if there's already a fingerprinter, deactivate it
+        elif self.fingerprinter:
+            manager.remove_action_group( self.finger_action_group )
+            manager.remove_ui( self.ui_cm )        
+                        
+            del self.finger_action_group
+            del self.ui_cm
+            del self.fingerprinter
+        
+        #if there isn't a fingerprinter and it's supposed to be, create it
+        elif settings[key]: 
             #creamos el fingerprinter
             self.fingerprinter = Fingerprinter( self )
         
@@ -364,15 +375,7 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
             
             #agregamos los menues contextuales
             self.ui_cm = manager.add_ui_from_string( 
-                                  LastFMExtensionFingerprinter.ui_context_menu ) 
-        else:      
-            manager.remove_action_group( self.finger_action_group )
-            manager.remove_ui( self.ui_cm )        
-                        
-            del self.finger_action_group
-            del self.ui_cm
-            del self.fingerprinter
-            		
+                                  LastFMExtensionFingerprinter.ui_context_menu )
         manager.ensure_update()                   
             
     def get_selected_songs( self ):
