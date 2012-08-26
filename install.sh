@@ -6,7 +6,7 @@ usage=$(
 cat <<EOF
 Usage:
 $0 [OPTION]
--h              show this message.
+-h, --help      show this message.
 -l, --local     install the plugin locally (default).
 -g, --global    install the plugin globally.
 
