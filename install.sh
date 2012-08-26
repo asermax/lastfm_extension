@@ -6,9 +6,10 @@ usage=$(
 cat <<EOF
 Usage:
 $0 [OPTION]
--h              show this message.
--l, --local     install the plugin locally (default).
--g, --global    install the plugin globally.
+-h                      show this message.
+-l, --local             install the plugin locally (default).
+-g, --global            install the plugin globally.
+--fingerprint-support   install needed libraries for fingerprint support
 
 EOF
 )
