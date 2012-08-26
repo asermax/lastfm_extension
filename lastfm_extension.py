@@ -60,7 +60,11 @@ class LastFMExtension( object ):
 
     def __init__( self, plugin ):
         self.settings = plugin.settings
-         
+        self.initialised = False
+
+        if plugin.connected and self.enabled:
+            self.initialise( plugin )
+
     '''
     Initialises the extension. This initialiser should ALWAYS be called by the
     class' subclasses that overrides it, since it haves an initialising sequence
@@ -73,12 +77,29 @@ class LastFMExtension( object ):
         self.create_actions( plugin )
         self.create_ui( plugin )
         self.connect_signals( plugin )
-       
+
+        self.initialised = True
+
+    def dismantle( self, plugin ):
+        self.disconnect_signals( plugin )
+        self.destroy_ui( plugin )
+        self.destroy_actions( plugin )
+
+        self.initialised = False
+
+    def connection_changed( self, plugin ):
+        if not plugin.connected:
+            if self.initialised:
+                self.dismantle( plugin )
+                        
+        elif self.enabled:
+            self.initialise( plugin )
+
     @property
     def enabled( self ):
         ext_settings = self.settings[Keys.EXTENSIONS][self.extension_name]
-        
-        def fget( self ):            
+
+        def fget( self ):
             return ext_settings['enabled']
 
         def fset( self, enable ):
@@ -91,13 +112,12 @@ class LastFMExtension( object ):
         pass
 
     @abstractproperty
-    def ui_str( self ):
+    def extension_desc( self ):
         pass
 
-    def dismantle( self, plugin ):
-        self.disconnect_signals( plugin )
-        self.destroy_ui( plugin )
-        self.destroy_actions( plugin )
+    @abstractproperty
+    def ui_str( self ):
+        pass
 
     @abstractmethod
     def create_actions( self, plugin ):
@@ -109,11 +129,14 @@ class LastFMExtension( object ):
 
     @abstractmethod
     def connect_signals( self, plugin ):
-        pass
+        self.sett_id = self.settings.connect( 'changed::%s' % Keys.EXTENSIONS,
+                                              self.settings_changed, plugin )
 
     @abstractmethod
     def disconnect_signals( self, plugin ):
-        pass
+        self.settings.disconnect( self.sett_id )
+
+        del self.sett_id
 
     def destroy_ui( self, plugin ):
         plugin.uim.remove_ui( self.ui_id )
@@ -125,7 +148,21 @@ class LastFMExtension( object ):
         plugin.uim.insert_action_group( self.action_group )
 
     def get_configuration_widget( self ):
-        return Gtk.CheckButton( "Activate %s " % self )
+        widget = Gtk.CheckButton( "Activate %s " % self )
+
+        widget.set_tooltip_text( self.extension_desc )
+
+        return widget
+
+    def settings_changed( self, settings, key, plugin ):
+        enabled = settings[key]['enabled']
+
+        if enabled:
+            if plugin.connected:
+                self.initialise( plugin )
+
+        elif self.initialised:
+            self.dismantle( plugin )
 
     def __str__( self, *args, **kwargs ):
         return self.extension_name
@@ -133,25 +170,25 @@ class LastFMExtension( object ):
 '''
 This class serves as intermediary between the Plugin and it's Configurable, so
 both can access the loaded extensions.
-'''    
+'''
 class LastFMExtensionBag( object ):
     instance = None
-    
+
     #=======================================================================
     # TODO: Others things this class could have:
     #       - Load the extensions from a config file
     #       - The methods to initialise and dismantle the extensions (it should
     #         mantain a reference to the plugin for that)
     #=======================================================================
-    
-    def __init__(self):
-        self.extensions = {}   
-            
+
+    def __init__( self ):
+        self.extensions = {}
+
     @classmethod
     def get_instance( cls ):
         if not cls.instance:
             cls.instance = LastFMExtensionBag()
-            
+
         return cls.instance
 
 class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
@@ -161,6 +198,16 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
     def __init__( self ):
         GObject.Object.__init__( self )
         self.settings = Gio.Settings.new( Keys.PATH )
+
+    @property
+    def connected( self ):
+        def fget( self ):
+            return self.settings['connected']
+
+        def fset( self, connect ):
+            self.settings['connected'] = connect
+
+        return locals()
 
     def do_activate( self ):
 
