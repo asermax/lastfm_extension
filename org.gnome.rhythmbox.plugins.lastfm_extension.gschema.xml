@@ -6,25 +6,15 @@
             <summary>Last.fm session key.</summary>
             <description>Saves the Last.fm session key to connect to Last.fm.</description>
         </key>
-        <key type="b" name="play-count-active">
-            <default>false</default>
-            <summary>If the playcount sync should be active or not.</summary>
-            <description>Determines if the playcount syncronization with Last.fm should be active or not.</description>
-        </key>
-        <key type="b" name="loved-active">
-            <default>false</default>
-            <summary>If the loved tracks should be synced or not.</summary>
-            <description>Determines if the loved tracks on Last.fm should be synced (marked with 5 stars) on rhythmbox.</description>
-        </key>
-        <key type="b" name="fingerprinter-active">
-            <default>false</default>
-            <summary>If the fingerprinter should be enabled.</summary>
-            <description>Determines if the fingerprinter module should be enabled and avaible for it's use on the application.</description>
-        </key>
         <key type="b" name="connected">
             <default>false</default>
             <summary>If the plugin is connected with LastFM or not.</summary>
             <description>Determines if the plugin is actually connected with LastFM or not. It's also used as communication medium between the config dialog and the plugin itself to manage the connection.</description>
+        </key>
+        <key type="a{sa{sb}}" name="extensions">
+        	<default>{}</default>
+        	<description>Extensions' specific settings.</description>
+        	<summary>Construction to save extensions' specific settings. Initially, all extension should define a 'enabled' key to determine if it should be enabled or not.</summary>
         </key>
     </schema>
 </schemalist>

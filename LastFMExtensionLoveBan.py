@@ -35,8 +35,6 @@ UI_STR = """
 </ui>
 """
 
-KEY = 'love_ban_extension'
-
 #icon paths
 LOVE_ICON = 'img/love.png'
 BAN_ICON = 'img/ban.png'
@@ -51,10 +49,6 @@ class Extension( LastFMExtension ):
     @property
     def extension_name( self ):
         return "LastFMLoveBan"
-
-    @property
-    def settings_key(self):
-        return KEY
 
     @property
     def ui_str(self):

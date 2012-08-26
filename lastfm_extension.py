@@ -76,20 +76,18 @@ class LastFMExtension( object ):
        
     @property
     def enabled( self ):
-        def fget( self ):
-            return self.settings[self.settings_key]
+        ext_settings = self.settings[Keys.EXTENSIONS][self.extension_name]
+        
+        def fget( self ):            
+            return ext_settings['enabled']
 
         def fset( self, enable ):
-            self.settings[self.settings_key] = enable
+            ext_settings['enabled'] = enable
 
         return locals()
 
     @abstractproperty
     def extension_name( self ):
-        pass
-
-    @abstractproperty
-    def settings_key( self ):
         pass
 
     @abstractproperty
@@ -138,6 +136,13 @@ both can access the loaded extensions.
 '''    
 class LastFMExtensionBag( object ):
     instance = None
+    
+    #=======================================================================
+    # TODO: Others things this class could have:
+    #       - Load the extensions from a config file
+    #       - The methods to initialise and dismantle the extensions (it should
+    #         mantain a reference to the plugin for that)
+    #=======================================================================
     
     def __init__(self):
         self.extensions = {}   
