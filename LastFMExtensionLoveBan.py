@@ -23,6 +23,10 @@ import rb
 
 from LastFMExtensionUtils import asynchronous_call as async, notify
 
+#name and description
+NAME = "LastFMLoveBan"
+DESCRIPTION = "Add the Love and Ban buttons to your Toolbar!"
+
 #constants
 UI_STR = """
 <ui>
@@ -48,8 +52,12 @@ class Extension( LastFMExtension ):
 
     @property
     def extension_name( self ):
-        return "LastFMLoveBan"
-
+        return NAME
+    
+    @property
+    def extension_desc(self):
+        return DESCRIPTION
+    
     @property
     def ui_str(self):
         return UI_STR        
