@@ -58,35 +58,41 @@ Base class for all the extensions managed by this plugin.
 class LastFMExtension( object ):
     __metaclass__ = ABCMeta
 
+    '''
+    By default, all extension are initialized allocating a 'settings' attribute
+    that points to a Gio.Settings object binded to the global settings of the
+    plugin. Each extension can make use of it to check or modify it's settings.
+    '''
     def __init__( self, plugin ):
         self.settings = plugin.settings
         self.initialised = False
 
         if plugin.connected and self.enabled:
             self.initialise( plugin )
+            
+        self.conn_id = self.settings.CONNECT( 'changed::%s' % Keys.CONNECTED,
+                                              self.connection_changed( plugin ) ) 
 
     '''
-    Initialises the extension. This initialiser should ALWAYS be called by the
-    class' subclasses that overrides it, since it haves an initialising sequence
-    all extensions should follow.
-
-    Parameters:
-        plugin -- the current instance of the plugin managed by Rhythmbox.
+    This method should be called ALWAYS before the deletion of the object or 
+    the deactivation of the plugin. It makes sure that all the resources this
+    extensions has taken up are freed.
     '''
-    def initialise( self, plugin ):
-        self.create_actions( plugin )
-        self.create_ui( plugin )
-        self.connect_signals( plugin )
+    def destroy( self, plugin ):
+        if self.initialised:
+            self.dismantle( plugin )
+        
+        self.settings.disconnect( self.conn_id )
+        
+        del self.settings
+        del self.conn_id
 
-        self.initialised = True
-
-    def dismantle( self, plugin ):
-        self.disconnect_signals( plugin )
-        self.destroy_ui( plugin )
-        self.destroy_actions( plugin )
-
-        self.initialised = False
-
+    '''
+    Callback for changes in the connection of the plugin. It ensures that the
+    extension is reenabled (if enabled in the first place) when a connection is
+    made and to dismantle the plugin (if initialized) when the connection is
+    closed.
+    '''
     def connection_changed( self, plugin ):
         if not plugin.connected:
             if self.initialised:
@@ -119,6 +125,36 @@ class LastFMExtension( object ):
     def ui_str( self ):
         pass
 
+    '''
+    Initialises the extension. This initialiser should ALWAYS be called by the
+    class' subclasses that overrides it, since it haves an initialising sequence
+    all extensions should follow.
+
+    Parameters:
+        plugin -- the current instance of the plugin managed by Rhythmbox.
+    '''
+    def initialise( self, plugin ):
+        self.create_actions( plugin )
+        self.create_ui( plugin )
+        self.connect_signals( plugin )
+
+        self.initialised = True
+
+    '''
+    Dismantles the extension when it's disabled. This destroy any ui, signa-
+    handlers and actions the extension may have created during it's initializa-
+    tion.
+    
+    Parameters:
+        plugin -- the current instance of the plugin managed by Rhythmbox.
+    '''
+    def dismantle( self, plugin ):
+        self.disconnect_signals( plugin )
+        self.destroy_ui( plugin )
+        self.destroy_actions( plugin )
+
+        self.initialised = False  
+
     @abstractmethod
     def create_actions( self, plugin ):
         self.action_group = Gtk.ActionGroup( self.extension_name )
@@ -131,12 +167,13 @@ class LastFMExtension( object ):
     def connect_signals( self, plugin ):
         self.sett_id = self.settings.connect( 'changed::%s' % Keys.EXTENSIONS,
                                               self.settings_changed, plugin )
-
+        
     @abstractmethod
     def disconnect_signals( self, plugin ):
-        self.settings.disconnect( self.sett_id )
+        self.settings.disconnect( self.sett_id )        
 
         del self.sett_id
+        
 
     def destroy_ui( self, plugin ):
         plugin.uim.remove_ui( self.ui_id )
