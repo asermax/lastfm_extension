@@ -101,6 +101,10 @@ class LastFMExtension( object ):
         elif self.enabled:
             self.initialise( plugin )
 
+    '''
+    Indicates if the extension is enabled. Also allows to enable/disable the
+    extension.
+    '''
     @property
     def enabled( self ):
         ext_settings = self.settings[Keys.EXTENSIONS][self.extension_name]
@@ -113,14 +117,24 @@ class LastFMExtension( object ):
 
         return locals()
 
+    '''
+    Returns the extension name. Read only property.
+    '''
     @abstractproperty
     def extension_name( self ):
         pass
 
+    '''
+    Returns a description for the extensions. Read only property.
+    '''
     @abstractproperty
     def extension_desc( self ):
         pass
 
+    '''
+    Returns the ui_str that defines this plugins ui elements to be added to
+    Rhythmbox application window. Read only property.
+    '''
     @abstractproperty
     def ui_str( self ):
         pass
@@ -155,42 +169,81 @@ class LastFMExtension( object ):
 
         self.initialised = False  
 
+    '''
+    Creates all the extension's related actions and inserts them into the 
+    application. 
+    This method is always called when the extension is initialised.
+    '''
     @abstractmethod
     def create_actions( self, plugin ):
         self.action_group = Gtk.ActionGroup( self.extension_name )
         plugin.uim.insert_action_group( self.action_group )
-
+        
+    '''
+    Creates the plugin ui within the Rhythmbox application.
+    This method is always called when the extension is initialized
+    '''
     def create_ui( self, plugin ):
         self.ui_id = plugin.uim.add_ui_from_string( self.ui_str )
 
+    '''
+    Connects all the extension's needed signals for it to function correctly.
+    This method is always called when the extension is initialized.
+    '''
     @abstractmethod
     def connect_signals( self, plugin ):
         self.sett_id = self.settings.connect( 'changed::%s' % Keys.EXTENSIONS,
                                               self.settings_changed, plugin )
-        
+    
+    '''
+    Disconnects all the signals connected by the extension.
+    This method is always called when the extension is dismantled.
+    '''    
     @abstractmethod
     def disconnect_signals( self, plugin ):
-        self.settings.disconnect( self.sett_id )        
-
-        del self.sett_id
+            self.settings.disconnect( self.sett_id )        
+    
+            del self.sett_id
         
-
+    '''
+    Destroys the extension's ui whithin the Rhythmbox application.
+    This method is always called when the extension is dismantled.
+    '''
     def destroy_ui( self, plugin ):
         plugin.uim.remove_ui( self.ui_id )
         del self.action_group
 
+    '''
+    Dismantles all the actions created by this extension and dissasociates them
+    from the Rhythmbox application.
+    This method is always called when the extension is dismantled.
+    '''
     @abstractmethod
     def destroy_actions( self, plugin ):
         self.action_group = Gtk.ActionGroup( self.extension_name )
         plugin.uim.insert_action_group( self.action_group )
 
+    '''
+    Returns a GTK widget to be used as a configuration interface for the 
+    extension on the plugin's preferences dialog. Every extension is responsible
+    of connecting the correspondent signals and managing them to configure
+    itself. By default, this methods returns a checkbox that allows the user
+    to enable/disable the extension.
+    '''
     def get_configuration_widget( self ):
-        widget = Gtk.CheckButton( "Activate %s " % self )
-
+        def toggled_callback( checkbox ):
+            self.enabled = checkbox.get_active()
+        
+        widget = Gtk.CheckButton( "Activate %s " % self )        
+        widget.connect( 'toggled', toggled_callback )
         widget.set_tooltip_text( self.extension_desc )
 
         return widget
 
+    '''
+    Callback for when a setting is changed. The default implementation makes
+    sure to initialise or dismantle the extension acordingly.
+    '''
     def settings_changed( self, settings, key, plugin ):
         enabled = settings[key]['enabled']
 
