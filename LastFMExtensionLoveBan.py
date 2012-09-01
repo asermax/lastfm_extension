@@ -69,7 +69,8 @@ class Extension( LastFMExtension ):
         self.action_love = Gtk.Action( 'LoveTrack', _( '_Love Track' ),
                                        _( "Love this track." ), None )
         icon = Gio.FileIcon.new( Gio.File.new_for_path( 
-                                      rb.find_plugin_file( self, LOVE_ICON ) ) )
+                                      rb.find_plugin_file( plugin, 
+                                                           LOVE_ICON ) ) )
         self.action_love.set_gicon( icon )
         self.action_group.add_action( self.action_love )
 
@@ -78,7 +79,8 @@ class Extension( LastFMExtension ):
                                 _( "Ban this track." ),
                                 None )
         icon = Gio.FileIcon.new( Gio.File.new_for_path( 
-                                       rb.find_plugin_file( self, BAN_ICON ) ) )
+                                       rb.find_plugin_file( plugin,
+                                                            BAN_ICON ) ) )
         self.action_ban.set_gicon( icon )        
         self.action_group.add_action( self.action_ban )       
 
@@ -94,7 +96,7 @@ class Extension( LastFMExtension ):
         #signal to enable/disable the buttons when there's no current entry
         self.benable_id = self.player.connect( 'playing-changed',
                                                 lambda sp, playing:
-                      self.enable_buttons( self.player.get_playing_entry() ) )
+                      self.enable_buttons( plugin.player.get_playing_entry() ) )
         
     def disconnect_signals( self, plugin ):
         super( Extension, self ).disconnect_signals( self )
