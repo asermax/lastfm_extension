@@ -379,11 +379,7 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
         #inicializamos el modulo de notificacion
         LastFMExtensionUtils.init( rb.find_plugin_file( self, LASTFM_ICON ) )
 
-        #obtenemos el ui manager
         manager = shell.props.ui_manager
-
-        #creamos el action group
-        self.action_group = Gtk.ActionGroup( 'LastFMExtensionActions' )
 
         #guardamos la db como atributo
         self.db = shell.get_property( 'db' )
@@ -449,7 +445,6 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
         #desasignamos variables
         del self.db
         del self.player
-        del self.action_group
         del self.settings
 
         #borramos el fingerprinter si existe
@@ -477,62 +472,6 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
         artist = unicode( entry.get_string( RB.RhythmDBPropType.ARTIST ), 'utf-8' )
 
         return ( entry, self.network.get_track( artist, title ) )
-
-
-    def love_track( self, action ):
-        entry, track = self.get_track()
-
-        if not entry or not track:
-            return
-
-        async( track.love, self.track_loved, track, entry )()
-
-    def track_loved( self, result, track, entry ):
-        #mostramos un mensaje diferente segun el resultado
-        if isinstance( result, Exception ):
-            titulo = 'Failed to love track'
-            texto = 'There was an error in the connection while ' + \
-                    'trying to mark the track as loved.'
-        else:
-            titulo = 'Loved track'
-            texto = 'You just marked the track %s - %s as loved' % \
-              ( track.get_title().encode( 'utf-8' ), track.get_artist() )
-
-        notify( titulo, texto )
-
-        #bonus: ponemos 5 estrellas al track
-        self.db.entry_set( entry, RB.RhythmDBPropType.RATING, 5 )
-        self.db.commit()
-
-    def ban_track( self, action ):
-        entry, track = self.get_track()
-
-        if not entry or not track:
-            return
-
-        async( track.ban, self.track_banned, track, entry )()
-
-    def track_banned( self, result, track, entry ):
-        #mostramos un mensaje diferente segun el resultado
-        if isinstance( result, Exception ):
-            titulo = 'Failed to ban track'
-            texto = 'There was an error in the connection while ' + \
-                    'trying to mark the track as banned.'
-        else:
-            titulo = 'Banned track'
-            texto = 'You just marked the track %s - %s as banned' % \
-              ( track.get_title().encode( 'utf-8' ), track.get_artist() )
-
-        notify( titulo, texto )
-
-        #bonus: ponemos 0 estrellas al track
-        self.db.entry_set( entry, RB.RhythmDBPropType.RATING, 0 )
-        self.db.commit()
-
-    def enable_buttons( self, entry, settings ):
-        enable = settings[Keys.CONNECTED] and entry is not None
-
-        self.action_group.set_property( 'sensitive', enable )
 
     def connect_playcount( self, settings, key ):
         try:
