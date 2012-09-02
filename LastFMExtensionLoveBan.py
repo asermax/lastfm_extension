@@ -72,6 +72,9 @@ class Extension( LastFMExtension ):
     def create_actions( self, plugin ):
         super( Extension, self ).create_actions( plugin )
 
+        #create the action group
+        self.action_group = Gtk.ActionGroup( self.extension_name )
+        
         #create love action
         self.action_love = Gtk.Action( 'LoveTrack', _( '_Love Track' ),
                                        _( "Love this track." ), None )
@@ -93,6 +96,9 @@ class Extension( LastFMExtension ):
         
         #disable the buttons initially
         self.enable_buttons( False )
+        
+        #insert the action group to the uim
+        plugin.uim.insert_action_group( self.action_group )
 
     def connect_signals( self, plugin ):
         super( Extension, self ).connect_signals( plugin )
@@ -124,6 +130,10 @@ class Extension( LastFMExtension ):
 
     def destroy_actions( self, plugin ):
         super( Extension, self ).destroy_actions( plugin )
+        
+        #remove and destroy the action group
+        plugin.uim.remove_action_group( self.action_group )            
+        del self.action_group
 
         #delete actions
         del self.action_love

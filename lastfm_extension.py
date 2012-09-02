@@ -204,8 +204,7 @@ class LastFMExtension( object ):
     '''
     @abstractmethod
     def create_actions( self, plugin ):
-        self.action_group = Gtk.ActionGroup( self.extension_name )
-        plugin.uim.insert_action_group( self.action_group )
+        pass
 
     '''
     Creates the plugin ui within the Rhythmbox application.
@@ -245,9 +244,7 @@ class LastFMExtension( object ):
     '''
     @abstractmethod
     def destroy_actions( self, plugin ):
-        plugin.uim.remove_action_group( self.action_group )
-            
-        del self.action_group
+        pass
 
     '''
     Returns a GTK widget to be used as a configuration interface for the
