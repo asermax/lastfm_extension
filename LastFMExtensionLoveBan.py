@@ -45,23 +45,30 @@ BAN_ICON = 'img/ban.png'
 
 class Extension( LastFMExtension ):
     def __init__( self, plugin ):
-        super( Extension, self ).__init__( plugin )
+        self.player = plugin.shell.props.shell_player
         
+        super( Extension, self ).__init__( plugin )
+
         self.network = plugin.network
-        self.player = plugin.player
+        self.db = plugin.shell.props.db
 
     @property
     def extension_name( self ):
         return NAME
-    
+
     @property
-    def extension_desc(self):
+    def extension_desc( self ):
         return DESCRIPTION
-    
+
     @property
-    def ui_str(self):
-        return UI_STR        
+    def ui_str( self ):
+        return UI_STR
+    
+    def connection_changed( self, plugin ):
+        super( Extension, self ).connection_changed( plugin )
         
+        self.network = plugin.network
+
     def create_actions( self, plugin ):
         super( Extension, self ).create_actions( plugin )
 
@@ -69,7 +76,7 @@ class Extension( LastFMExtension ):
         self.action_love = Gtk.Action( 'LoveTrack', _( '_Love Track' ),
                                        _( "Love this track." ), None )
         icon = Gio.FileIcon.new( Gio.File.new_for_path( 
-                                      rb.find_plugin_file( plugin, 
+                                      rb.find_plugin_file( plugin,
                                                            LOVE_ICON ) ) )
         self.action_love.set_gicon( icon )
         self.action_group.add_action( self.action_love )
@@ -81,48 +88,50 @@ class Extension( LastFMExtension ):
         icon = Gio.FileIcon.new( Gio.File.new_for_path( 
                                        rb.find_plugin_file( plugin,
                                                             BAN_ICON ) ) )
-        self.action_ban.set_gicon( icon )        
-        self.action_group.add_action( self.action_ban )       
+        self.action_ban.set_gicon( icon )
+        self.action_group.add_action( self.action_ban )
+        
+        #disable the buttons initially
+        self.enable_buttons( False )
 
     def connect_signals( self, plugin ):
-        super( Extension, self ).connect_signals( self )
-        
+        super( Extension, self ).connect_signals( plugin )
+
         #signal for loving a track
         self.love_id = self.action_love.connect( 'activate', self._love_track )
-        
+
         #signal for baning a track
         self.ban_id = self.action_ban.connect( 'activate', self._ban_track )
-        
+
         #signal to enable/disable the buttons when there's no current entry
         self.benable_id = self.player.connect( 'playing-changed',
                                                 lambda sp, playing:
-                      self.enable_buttons( plugin.player.get_playing_entry() ) )
-        
+                      self.enable_buttons( plugin.player.get_playing_entry()
+                                            is not None ) )
+
     def disconnect_signals( self, plugin ):
-        super( Extension, self ).disconnect_signals( self )
-        
+        super( Extension, self ).disconnect_signals( plugin )
+
         #disconnect signals
         self.action_love.disconnect( self.love_id )
         self.action_ban.disconnect( self.ban_id )
         self.player.disconnect( self.benable_id )
-        
+
         #delete variables
         del self.love_id
         del self.ban_id
         del self.benable_id
-        
+
     def destroy_actions( self, plugin ):
-        super( Extension, self ).destroy_actions( self )
-        
+        super( Extension, self ).destroy_actions( plugin )
+
         #delete actions
         del self.action_love
-        del self.action_ban    
-       
-    def enable_buttons( self, entry ):
-        enable = entry is not None
+        del self.action_ban
 
+    def enable_buttons( self, enable ):
         self.action_group.set_property( 'sensitive', enable )
-    
+
     def get_current_track( self ):
         entry = self.player.get_playing_entry()
 
@@ -131,12 +140,12 @@ class Extension( LastFMExtension ):
 
         title = unicode( entry.get_string( RB.RhythmDBPropType.TITLE ),
                          'utf-8' )
-        artist = unicode( entry.get_string( RB.RhythmDBPropType.ARTIST ), 
+        artist = unicode( entry.get_string( RB.RhythmDBPropType.ARTIST ),
                           'utf-8' )
 
         return ( entry, self.network.get_track( artist, title ) )
-             
-    def _love_track(self):
+
+    def _love_track( self, _ ):
         entry, track = self.get_current_track()
 
         if not entry or not track:
@@ -160,8 +169,8 @@ class Extension( LastFMExtension ):
         #bonus: 5 stars to the loved track
         self.db.entry_set( entry, RB.RhythmDBPropType.RATING, 5 )
         self.db.commit()
-    
-    def _ban_track(self):
+
+    def _ban_track( self, _ ):
         entry, track = self.get_current_track()
 
         if not entry or not track:
