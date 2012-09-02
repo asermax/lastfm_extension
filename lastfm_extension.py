@@ -92,7 +92,7 @@ class LastFMExtension( object ):
             self.dismantle( plugin )
 
         self.settings.disconnect( self.conn_id )
-        self.settings.disconnect( self.sett_id )            
+        self.settings.disconnect( self.sett_id )
 
         del self.settings
         del self.conn_id
@@ -116,10 +116,10 @@ class LastFMExtension( object ):
     Returns the extensions settings saved on the Gio schema, if such settings
     exist. Otherwise, create a temp one with default values.
     '''
-    def _get_ext_settings(self):
+    def _get_ext_settings( self ):
         global_settings = self.settings[Keys.EXTENSIONS]
-        
-        try:            
+
+        try:
             ext_settings = global_settings[self.extension_name]
         except KeyError:
             ext_settings = {'enabled':False}
@@ -131,16 +131,16 @@ class LastFMExtension( object ):
     extension.
     '''
     @property
-    def enabled( self ):        
+    def enabled( self ):
         ext_settings = self._get_ext_settings()
 
         return ext_settings['enabled']
-    
+
     @enabled.setter
-    def enabled( self, enable ):        
-        ext_settings = self._get_ext_settings()        
+    def enabled( self, enable ):
+        ext_settings = self._get_ext_settings()
         ext_settings['enabled'] = enable
-        
+
         global_settings = self.settings[Keys.EXTENSIONS]
         global_settings[self.extension_name] = ext_settings
         self.settings[Keys.EXTENSIONS] = global_settings
@@ -236,7 +236,7 @@ class LastFMExtension( object ):
     '''
     def destroy_ui( self, plugin ):
         plugin.uim.remove_ui( self.ui_id )
-        del self.action_group
+        del self.ui_id
 
     '''
     Dismantles all the actions created by this extension and dissasociates them
@@ -245,8 +245,9 @@ class LastFMExtension( object ):
     '''
     @abstractmethod
     def destroy_actions( self, plugin ):
-        self.action_group = Gtk.ActionGroup( self.extension_name )
-        plugin.uim.insert_action_group( self.action_group )
+        plugin.uim.remove_action_group( self.action_group )
+            
+        del self.action_group
 
     '''
     Returns a GTK widget to be used as a configuration interface for the
@@ -289,13 +290,6 @@ both can access the loaded extensions.
 class LastFMExtensionBag( object ):
     instance = None
 
-    #=======================================================================
-    # TODO: Others things this class could have:
-    #       - Load the extensions from a config file
-    #       - The methods to initialise and dismantle the extensions (it should
-    #         mantain a reference to the plugin for that)
-    #=======================================================================
-
     def __init__( self, plugin ):
         self.extensions = {}
 
@@ -324,9 +318,18 @@ class LastFMExtensionBag( object ):
                     if fp:
                         fp.close()
 
+    def destroy( self, plugin ):
+        #destroy all the extensions
+        for extension in self.extensions.itervalues():
+            extension.destroy( plugin )
+
     @classmethod
     def initialise_instance( cls, plugin ):
         cls.instance = LastFMExtensionBag( plugin )
+
+    @classmethod
+    def destroy_instance( cls, plugin ):
+        cls.instance.destroy( plugin )
 
     @classmethod
     def get_instance( cls ):
@@ -339,8 +342,8 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
 
     def __init__( self ):
         GObject.Object.__init__( self )
-        self.settings = Gio.Settings.new( Keys.PATH )       
-               
+        self.settings = Gio.Settings.new( Keys.PATH )
+
     @property
     def connected( self ):
         def fget( self ):
@@ -352,11 +355,6 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
         return locals()
 
     def do_activate( self ):
-        #TEST ONLY - REMOVE LATER
-        # self.uim = self.object.props.ui_manager ------------------------------
-        # self.player = self.object.props.shell_player -------------------------
-        # self.network = None --------------------------------------------------
-        # LastFMExtensionBag.initialise_instance( self ) -----------------------
 
         #=======================================================================
         # TODO: Before going to the extensions, the plugin should
@@ -390,59 +388,11 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
         #creamos el action group
         self.action_group = Gtk.ActionGroup( 'LastFMExtensionActions' )
 
-        #creamos el action love
-        action_love = Gtk.Action( 'LoveTrack', _( '_Love Track' ),
-                                _( "Love this track." ),
-                                None )
-
-        #creamos y asignamos el icono al action love
-        icon = Gio.FileIcon.new( Gio.File.new_for_path( 
-                                      rb.find_plugin_file( self, LOVE_ICON ) ) )
-        action_love.set_gicon( icon )
-
-        #conectamos la señal al método love_track
-        self.love_id = action_love.connect( 'activate', self.love_track )
-
-        #agregamos el action al action group
-        self.action_group.add_action( action_love )
-
-        #creamos el action ban
-        action_ban = Gtk.Action( 'BanTrack', _( '_Ban Track' ),
-                                _( "Ban this track." ),
-                                None )
-
-        #creamos y asignamos el icono al action love
-        icon = Gio.FileIcon.new( Gio.File.new_for_path( 
-                                       rb.find_plugin_file( self, BAN_ICON ) ) )
-        action_ban.set_gicon( icon )
-
-        #conectamos la señal al método love_track
-        self.ban_id = action_ban.connect( 'activate', self.ban_track )
-
-        #agregamos el action al action group
-        self.action_group.add_action( action_ban )
-
-        #insertamos el action group y guardamos el ui_id
-        manager.insert_action_group( self.action_group, -1 )
-        self.ui_id = manager.add_ui_from_string( ui_str )
-
-        #disableamos los botones
-        self.enable_buttons( player.get_playing_entry(), self.settings )
-
-        #updateamos la ui
-        manager.ensure_update()
-
         #guardamos la db como atributo
         self.db = shell.get_property( 'db' )
 
         #guardamos el player en una variable para tenerla mas a mano
         self.player = player
-
-        #conectamos la señal playing_changed para activar o desactivar
-        #los botones de love/ban
-        self.benable_id = player.connect( 'playing-changed', lambda sp, playing:
-              self.enable_buttons( self.player.get_playing_entry(),
-                                   self.settings ) )
 
         #conectamos la señal para conectar o desconectar
         self.settings.connect( 'changed::%s' % Keys.CONNECTED,
@@ -464,6 +414,11 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
         #inicializamos la network si estan los datos disponibles
         self.conection_changed( self.settings, Keys.CONNECTED, manager )
 
+        #TEST ONLY - REMOVE LATER
+        self.shell = self.object
+        self.uim = self.object.props.ui_manager
+        LastFMExtensionBag.initialise_instance( self )
+
     def do_deactivate( self ):
         shell = self.object
 
@@ -480,8 +435,6 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
 
         #destruimos la ui
         manager = shell.props.ui_manager
-        manager.remove_ui( self.ui_id )
-        manager.remove_action_group( self.action_group )
 
         if self.ui_cm:
             manager.remove_action_group( self.finger_action_group )
@@ -495,11 +448,6 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
 
         if self.loved_id:
             self.player.disconnect( self.loved_id )
-
-        #desconectamos las señales de botones
-        self.player.disconnect( self.benable_id )
-        self.player.disconnect( self.love_id )
-        self.player.disconnect( self.ban_id )
 
         #desasignamos variables
         del self.db
@@ -515,6 +463,12 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
         #borramos la network si existe
         if self.network:
             del self.network
+
+        #TESTING
+        LastFMExtensionBag.destroy_instance( self )
+
+        del self.shell
+        del self.uim
 
     def get_track( self ):
         entry = self.player.get_playing_entry()
