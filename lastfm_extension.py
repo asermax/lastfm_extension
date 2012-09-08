@@ -17,13 +17,12 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA.
 
 import pylast
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractproperty
 from gi.repository import GObject, Gio, Gtk, Peas, RB
 
 import rb
 from ConfigParser import SafeConfigParser
 import imp
-from beets.util.bluelet import sleep
 
 try:
     import LastFMExtensionFingerprinter
