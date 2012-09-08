@@ -164,7 +164,6 @@ class LastFMExtension( object ):
     Returns the ui_str that defines this plugins ui elements to be added to
     Rhythmbox application window. Read only property.
     '''
-    @abstractproperty
     def ui_str( self ):
         pass
 
@@ -204,7 +203,6 @@ class LastFMExtension( object ):
     application.
     This method is always called when the extension is initialised.
     '''
-    @abstractmethod
     def create_actions( self, plugin ):
         pass
 
@@ -220,7 +218,6 @@ class LastFMExtension( object ):
     Connects all the extension's needed signals for it to function correctly.
     This method is always called when the extension is initialized.
     '''
-    @abstractmethod
     def connect_signals( self, plugin ):
         pass
 
@@ -228,7 +225,6 @@ class LastFMExtension( object ):
     Disconnects all the signals connected by the extension.
     This method is always called when the extension is dismantled.
     '''
-    @abstractmethod
     def disconnect_signals( self, plugin ):
         pass
 
@@ -246,7 +242,6 @@ class LastFMExtension( object ):
     from the Rhythmbox application.
     This method is always called when the extension is dismantled.
     '''
-    @abstractmethod
     def destroy_actions( self, plugin ):
         pass
 
@@ -283,6 +278,67 @@ class LastFMExtension( object ):
 
     def __str__( self, *args, **kwargs ):
         return self.extension_name
+
+'''
+Base class for the extensions that want to use the current track in their 
+activity. It automatically connects the playing-changed signal and implements
+an utility method to get the current track data.
+'''
+class LastFMExtensionWithPlayer( LastFMExtension ):
+    '''
+    Initialises the plugin, saving the shell player on self.player
+    '''
+    def __init__( self, plugin ):
+        self.player = plugin.shell.props.shell_player
+
+        super( LastFMExtensionWithPlayer, self ).__init__( plugin )
+
+    '''
+    Connects the playing-changed signal to the callback playing_changed.
+    '''
+    def connect_signals( self, plugin ):
+        super( LastFMExtensionWithPlayer, self ).connect_signals( plugin )
+
+        #connect to the playing change signal
+        self.playing_changed_id = self.player.connect( 'playing-changed',
+                                                 self.playing_changed, plugin )
+
+    '''
+    Disconnects the playing-changed signal.
+    '''
+    def disconnect_signals( self, plugin ):
+        super( LastFMExtensionWithPlayer, self ).disconnect_signals( plugin )
+
+        #disconnect signals
+        self.player.disconnect( self.playing_changed_id )
+
+        #delete variables
+        del self.playing_changed_id
+
+    '''
+    Callback for the playing-changed signal. Subclasses should probably 
+    override this method to do whatever they want with it.
+    '''
+    def playing_changed( self, shell_player, playing, plugin ):
+        pass
+
+    '''
+    Utility method that gaves easy access to the current playing track.
+    It returns the current entry and a pylast Track instance pointing at
+    the given track.
+    '''
+    def get_current_track( self ):
+        entry = self.player.get_playing_entry()
+
+        if not entry:
+            return ( None, None )
+
+        title = unicode( entry.get_string( RB.RhythmDBPropType.TITLE ),
+                         'utf-8' )
+        artist = unicode( entry.get_string( RB.RhythmDBPropType.ARTIST ),
+                          'utf-8' )
+
+        return ( entry, self.network.get_track( artist, title ) )
 
 '''
 This class serves as intermediary between the Plugin and it's Configurable, so
@@ -440,8 +496,8 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
         manager.ensure_update()
 
         #desconectamos las señales
-        if self.playcount_id:
-            self.player.disconnect( self.playcount_id )
+        if self.playing_changed_id:
+            self.player.disconnect( self.playing_changed_id )
 
         if self.loved_id:
             self.player.disconnect( self.loved_id )
@@ -479,17 +535,17 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
 
     def connect_playcount( self, settings, key ):
         try:
-            self.playcount_id
+            self.playing_changed_id
         except:
-            self.playcount_id = None
+            self.playing_changed_id = None
 
         #si la opcion esta habilitada, conectamos la señal
         if settings[key] and settings[Keys.CONNECTED]:
-            self.playcount_id = self.player.connect( 'playing-changed',
+            self.playing_changed_id = self.player.connect( 'playing-changed',
                                                      self.playcount_updater )
         #sino, quitamos la señal
-        elif self.playcount_id:
-            self.player.disconnect( self.playcount_id )
+        elif self.playing_changed_id:
+            self.player.disconnect( self.playing_changed_id )
 
     def playcount_updater ( self, sp, playing ):
         if not playing:
