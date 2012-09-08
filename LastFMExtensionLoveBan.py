@@ -49,7 +49,6 @@ class Extension( LastFMExtension ):
         
         super( Extension, self ).__init__( plugin )
 
-        self.network = plugin.network
         self.db = plugin.shell.props.db
 
     @property
@@ -66,8 +65,6 @@ class Extension( LastFMExtension ):
     
     def connection_changed( self, plugin ):
         super( Extension, self ).connection_changed( plugin )
-        
-        self.network = plugin.network
 
     def create_actions( self, plugin ):
         super( Extension, self ).create_actions( plugin )
