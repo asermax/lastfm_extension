@@ -181,6 +181,7 @@ class LastFMExtension( object ):
         self.create_ui( plugin )
         self.connect_signals( plugin )
 
+        self.network = plugin.network
         self.initialised = True
 
     '''
