@@ -343,10 +343,16 @@ class LastFMExtensionWithPlayer( LastFMExtension ):
 '''
 This class serves as intermediary between the Plugin and it's Configurable, so
 both can access the loaded extensions.
+Also it works as a sort of factory, responsible of initialising and destroying
+all configured extensions.
 '''
 class LastFMExtensionBag( object ):
+    #unique instance of this Bag
     instance = None
 
+    '''
+    Initialise the bag, dinamically generating all the plugins.
+    '''
     def __init__( self, plugin ):
         self.extensions = {}
 
@@ -354,6 +360,14 @@ class LastFMExtensionBag( object ):
         config_file = rb.find_plugin_file( plugin, EXT_CONFIG )
         parser = SafeConfigParser()
         parser.read( config_file )
+
+        #NOTE ABOUT THE CONFIG:
+        #I should probably port all the configuration to this file.
+        #It's way easier to manipulate the settings from here, and since now
+        #each extension is responsible to return it's configuration widget,
+        #there is no need to connect their activation or any other setting
+        #modification through Gio (except maybe the connection, but I can
+        #simulate that one someway else).
 
         #read the extensions configs
         for extension in parser.sections():
@@ -374,23 +388,36 @@ class LastFMExtensionBag( object ):
                 finally:
                     if fp:
                         fp.close()
-
+    
+    '''
+    Destroy this Bag. This method MUST be called (if you want a clean shutdown).
+    '''
     def destroy( self, plugin ):
         #destroy all the extensions
         for extension in self.extensions.itervalues():
             extension.destroy( plugin )
 
+    '''
+    Initializes the shared Bag.
+    '''
     @classmethod
     def initialise_instance( cls, plugin ):
-        cls.instance = LastFMExtensionBag( plugin )
+        if not cls.instance:
+            cls.instance = LastFMExtensionBag( plugin )
 
+    '''
+    Destroys the shared Bag.
+    '''
     @classmethod
     def destroy_instance( cls, plugin ):
-        cls.instance.destroy( plugin )
+        if cls.instance:
+            cls.instance.destroy( plugin )
 
+    '''
+    Returns the shared Bag.
+    '''
     @classmethod
     def get_instance( cls ):
-
         return cls.instance
 
 class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
