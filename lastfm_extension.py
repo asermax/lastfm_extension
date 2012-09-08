@@ -23,6 +23,7 @@ from gi.repository import GObject, Gio, Gtk, Peas, RB
 import rb
 from ConfigParser import SafeConfigParser
 import imp
+from beets.util.bluelet import sleep
 
 try:
     import LastFMExtensionFingerprinter
@@ -211,7 +212,8 @@ class LastFMExtension( object ):
     This method is always called when the extension is initialized
     '''
     def create_ui( self, plugin ):
-        self.ui_id = plugin.uim.add_ui_from_string( self.ui_str )
+        if self.ui_str:
+            self.ui_id = plugin.uim.add_ui_from_string( self.ui_str )
 
     '''
     Connects all the extension's needed signals for it to function correctly.
@@ -234,8 +236,9 @@ class LastFMExtension( object ):
     This method is always called when the extension is dismantled.
     '''
     def destroy_ui( self, plugin ):
-        plugin.uim.remove_ui( self.ui_id )
-        del self.ui_id
+        if self.ui_str:
+            plugin.uim.remove_ui( self.ui_id )
+            del self.ui_id
 
     '''
     Dismantles all the actions created by this extension and dissasociates them
