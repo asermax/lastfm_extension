@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA.
 
-from lastfm_extension import LastFMExtension
+from lastfm_extension import LastFMExtensionWithPlayer
 from gi.repository import Gtk, Gio, RB
 
 import rb
@@ -43,10 +43,8 @@ UI_STR = """
 LOVE_ICON = 'img/love.png'
 BAN_ICON = 'img/ban.png'
 
-class Extension( LastFMExtension ):
-    def __init__( self, plugin ):
-        self.player = plugin.shell.props.shell_player
-        
+class Extension( LastFMExtensionWithPlayer ):
+    def __init__( self, plugin ):       
         super( Extension, self ).__init__( plugin )
 
         self.db = plugin.shell.props.db
@@ -92,7 +90,7 @@ class Extension( LastFMExtension ):
         self.action_group.add_action( self.action_ban )
         
         #disable the buttons initially
-        self.enable_buttons( False )
+        self._enable_buttons( False )
         
         #insert the action group to the uim
         plugin.uim.insert_action_group( self.action_group )
@@ -106,24 +104,16 @@ class Extension( LastFMExtension ):
         #signal for baning a track
         self.ban_id = self.action_ban.connect( 'activate', self._ban_track )
 
-        #signal to enable/disable the buttons when there's no current entry
-        self.benable_id = self.player.connect( 'playing-changed',
-                                                lambda sp, playing:
-                      self.enable_buttons( plugin.player.get_playing_entry()
-                                            is not None ) )
-
     def disconnect_signals( self, plugin ):
         super( Extension, self ).disconnect_signals( plugin )
 
         #disconnect signals
         self.action_love.disconnect( self.love_id )
         self.action_ban.disconnect( self.ban_id )
-        self.player.disconnect( self.benable_id )
 
         #delete variables
         del self.love_id
         del self.ban_id
-        del self.benable_id
 
     def destroy_actions( self, plugin ):
         super( Extension, self ).destroy_actions( plugin )
@@ -136,22 +126,12 @@ class Extension( LastFMExtension ):
         del self.action_love
         del self.action_ban
 
-    def enable_buttons( self, enable ):
+    def playing_changed( self, shell_player, playing, plugin ):
+        self._enable_buttons( plugin.player.get_playing_entry() is not None )
+
+    def _enable_buttons( self, enable ):
         self.action_group.set_property( 'sensitive', enable )
-
-    def get_current_track( self ):
-        entry = self.player.get_playing_entry()
-
-        if not entry:
-            return ( None, None )
-
-        title = unicode( entry.get_string( RB.RhythmDBPropType.TITLE ),
-                         'utf-8' )
-        artist = unicode( entry.get_string( RB.RhythmDBPropType.ARTIST ),
-                          'utf-8' )
-
-        return ( entry, self.network.get_track( artist, title ) )
-
+    
     def _love_track( self, _ ):
         entry, track = self.get_current_track()
 
