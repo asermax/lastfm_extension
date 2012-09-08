@@ -4,6 +4,7 @@ encoding/LastFMExtensionGenreGuesser.py=utf-8
 encoding/LastFMExtensionGui.py=utf-8
 encoding/LastFMExtensionKeys.py=utf-8
 encoding/LastFMExtensionLoveBan.py=utf-8
+encoding/LastFMExtensionPlaycountSync.py=utf-8
 encoding/LastFMExtensionUtils.py=utf-8
 encoding/lastfm_extension.py=utf-8
 encoding/pylast.py=utf-8

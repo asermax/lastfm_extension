@@ -164,6 +164,7 @@ class LastFMExtension( object ):
     Returns the ui_str that defines this plugins ui elements to be added to
     Rhythmbox application window. Read only property.
     '''
+    @property
     def ui_str( self ):
         pass
 
@@ -210,8 +211,8 @@ class LastFMExtension( object ):
     Creates the plugin ui within the Rhythmbox application.
     This method is always called when the extension is initialized
     '''
-    def create_ui( self, plugin ):
-        if self.ui_str:
+    def create_ui( self, plugin ):        
+        if self.ui_str != None:
             self.ui_id = plugin.uim.add_ui_from_string( self.ui_str )
 
     '''
@@ -233,7 +234,7 @@ class LastFMExtension( object ):
     This method is always called when the extension is dismantled.
     '''
     def destroy_ui( self, plugin ):
-        if self.ui_str:
+        if self.ui_str != None:
             plugin.uim.remove_ui( self.ui_id )
             del self.ui_id
 
@@ -267,7 +268,7 @@ class LastFMExtension( object ):
     sure to initialise or dismantle the extension acordingly.
     '''
     def settings_changed( self, settings, key, plugin ):
-        enabled = settings[key]['enabled']
+        enabled = settings[key][self.extension_name]['enabled']
 
         if enabled:
             if plugin.connected:
@@ -450,12 +451,7 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
         #conectamos la señal para conectar o desconectar
         self.settings.connect( 'changed::%s' % Keys.CONNECTED,
                                 self.conection_changed, manager )
-
-        #conectamos una señal con la setting de play count para
-        #activar/desactivar la funcionalidad cuando sea necesario
-        self.settings.connect( 'changed::%s' % Keys.PLAY_COUNT,
-                                self.connect_playcount )
-
+        
         #conectamos una señal con la setting de loved para activar/desactivar
         #la funcionalidad cuando sea necesario
         self.settings.connect( 'changed::%s' % Keys.LOVED, self.connect_loved )
@@ -496,9 +492,6 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
         manager.ensure_update()
 
         #desconectamos las señales
-        if self.playing_changed_id:
-            self.player.disconnect( self.playing_changed_id )
-
         if self.loved_id:
             self.player.disconnect( self.loved_id )
 
@@ -532,40 +525,6 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
         artist = unicode( entry.get_string( RB.RhythmDBPropType.ARTIST ), 'utf-8' )
 
         return ( entry, self.network.get_track( artist, title ) )
-
-    def connect_playcount( self, settings, key ):
-        try:
-            self.playing_changed_id
-        except:
-            self.playing_changed_id = None
-
-        #si la opcion esta habilitada, conectamos la señal
-        if settings[key] and settings[Keys.CONNECTED]:
-            self.playing_changed_id = self.player.connect( 'playing-changed',
-                                                     self.playcount_updater )
-        #sino, quitamos la señal
-        elif self.playing_changed_id:
-            self.player.disconnect( self.playing_changed_id )
-
-    def playcount_updater ( self, sp, playing ):
-        if not playing:
-            return
-
-        entry, track = self.get_track()
-
-        if not entry or not track:
-            return
-
-        #obtenemos la playcount de lastfm asincronamente
-        async( track.get_playcount, self.update_playcount, entry )( True )
-
-    def update_playcount( self, playcount, entry ):
-        #get current playcount               
-        old_playcount = entry.get_ulong( RB.RhythmDBPropType.PLAY_COUNT )
-
-        if playcount and type( playcount ) is int and old_playcount < playcount:
-            self.db.entry_set( entry, RB.RhythmDBPropType.PLAY_COUNT, playcount )
-            self.db.commit()
 
     def connect_loved( self, settings, key ):
         try:
@@ -666,7 +625,6 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
         else:
             self.network = None
 
-        self.connect_playcount( settings, Keys.PLAY_COUNT )
         self.connect_loved( settings, Keys.LOVED )
         self.activate_fingerprinter( settings, Keys.FINGERPRINTER, manager )
 
