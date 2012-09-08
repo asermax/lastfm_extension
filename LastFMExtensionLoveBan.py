@@ -44,7 +44,7 @@ LOVE_ICON = 'img/love.png'
 BAN_ICON = 'img/ban.png'
 
 class Extension( LastFMExtensionWithPlayer ):
-    def __init__( self, plugin ):       
+    def __init__( self, plugin ):
         super( Extension, self ).__init__( plugin )
 
         self.db = plugin.shell.props.db
@@ -60,7 +60,7 @@ class Extension( LastFMExtensionWithPlayer ):
     @property
     def ui_str( self ):
         return UI_STR
-    
+
     def connection_changed( self, plugin ):
         super( Extension, self ).connection_changed( plugin )
 
@@ -69,7 +69,7 @@ class Extension( LastFMExtensionWithPlayer ):
 
         #create the action group
         self.action_group = Gtk.ActionGroup( self.extension_name )
-        
+
         #create love action
         self.action_love = Gtk.Action( 'LoveTrack', _( '_Love Track' ),
                                        _( "Love this track." ), None )
@@ -88,10 +88,10 @@ class Extension( LastFMExtensionWithPlayer ):
                                                             BAN_ICON ) ) )
         self.action_ban.set_gicon( icon )
         self.action_group.add_action( self.action_ban )
-        
+
         #disable the buttons initially
         self._enable_buttons( False )
-        
+
         #insert the action group to the uim
         plugin.uim.insert_action_group( self.action_group )
 
@@ -117,9 +117,9 @@ class Extension( LastFMExtensionWithPlayer ):
 
     def destroy_actions( self, plugin ):
         super( Extension, self ).destroy_actions( plugin )
-        
+
         #remove and destroy the action group
-        plugin.uim.remove_action_group( self.action_group )            
+        plugin.uim.remove_action_group( self.action_group )
         del self.action_group
 
         #delete actions
@@ -131,7 +131,7 @@ class Extension( LastFMExtensionWithPlayer ):
 
     def _enable_buttons( self, enable ):
         self.action_group.set_property( 'sensitive', enable )
-    
+
     def _love_track( self, _ ):
         entry, track = self.get_current_track()
 
