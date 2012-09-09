@@ -43,28 +43,47 @@ UI_STR = """
 LOVE_ICON = 'img/love.png'
 BAN_ICON = 'img/ban.png'
 
-class Extension( LastFMExtensionWithPlayer ):
+class Extension( LastFMExtensionWithPlayer ):  
+    '''
+    This extensions adds the posibility to love or ban the current playing track.
+    '''  
+    
     def __init__( self, plugin ):
+        '''
+        Initializes the extension.
+        '''
         super( Extension, self ).__init__( plugin )
 
         self.db = plugin.shell.props.db
 
     @property
     def extension_name( self ):
+        '''
+        Returns the extension name. Read only property.
+        '''
         return NAME
 
     @property
     def extension_desc( self ):
+        '''
+        Returns a description for the extensions. Read only property.
+        '''
         return DESCRIPTION
 
     @property
     def ui_str( self ):
+        '''
+        Returns the ui_str that defines this plugins ui elements to be added to
+        Rhythmbox application window. Read only property.
+        '''
         return UI_STR
 
-    def connection_changed( self, plugin ):
-        super( Extension, self ).connection_changed( plugin )
-
     def create_actions( self, plugin ):
+        '''
+        Creates all the extension's related actions and inserts them into the
+        application.
+        This method is always called when the extension is initialised.
+        '''
         super( Extension, self ).create_actions( plugin )
 
         #create the action group
@@ -96,6 +115,11 @@ class Extension( LastFMExtensionWithPlayer ):
         plugin.uim.insert_action_group( self.action_group )
 
     def connect_signals( self, plugin ):
+        '''
+        Connects all the extension's needed signals for it to function 
+        correctly.
+        This method is always called when the extension is initialized.
+        '''
         super( Extension, self ).connect_signals( plugin )
 
         #signal for loving a track
@@ -105,6 +129,10 @@ class Extension( LastFMExtensionWithPlayer ):
         self.ban_id = self.action_ban.connect( 'activate', self._ban_track )
 
     def disconnect_signals( self, plugin ):
+        '''
+        Disconnects all the signals connected by the extension.
+        This method is always called when the extension is dismantled.
+        '''
         super( Extension, self ).disconnect_signals( plugin )
 
         #disconnect signals
@@ -116,6 +144,11 @@ class Extension( LastFMExtensionWithPlayer ):
         del self.ban_id
 
     def destroy_actions( self, plugin ):
+        '''
+        Dismantles all the actions created by this extension and dissasociates
+        them from the Rhythmbox application.
+        This method is always called when the extension is dismantled.
+        '''
         super( Extension, self ).destroy_actions( plugin )
 
         #remove and destroy the action group
@@ -127,12 +160,23 @@ class Extension( LastFMExtensionWithPlayer ):
         del self.action_ban
 
     def playing_changed( self, shell_player, playing, plugin ):
+        '''
+        Callback for the playing-changed signal. Enables or disables the buttons
+        for the extension.
+        '''
         self._enable_buttons( plugin.player.get_playing_entry() is not None )
 
     def _enable_buttons( self, enable ):
+        '''
+        Allows to enable or disable the extension's buttons.
+        '''
         self.action_group.set_property( 'sensitive', enable )
 
     def _love_track( self, _ ):
+        '''
+        Callback for when the Love action is called. It initiates the process
+        for loving a track.
+        '''
         entry, track = self.get_current_track()
 
         if not entry or not track:
@@ -141,6 +185,11 @@ class Extension( LastFMExtensionWithPlayer ):
         async( track.love, self._track_loved, track, entry )()
 
     def _track_loved( self, result, track, entry ):
+        '''
+        Callback for when the track is finally marked as loved or when the 
+        action failed for some reason. It informs the user of the result of 
+        the action.
+        '''
         #show a different message for fail/success
         if isinstance( result, Exception ):
             titulo = 'Failed to love track'
@@ -158,6 +207,10 @@ class Extension( LastFMExtensionWithPlayer ):
         self.db.commit()
 
     def _ban_track( self, _ ):
+        '''
+        Callback for when the Ban action is called. It initiates the process
+        for banning a track.
+        '''
         entry, track = self.get_current_track()
 
         if not entry or not track:
@@ -166,6 +219,11 @@ class Extension( LastFMExtensionWithPlayer ):
         async( track.ban, self._track_banned, track, entry )()
 
     def _track_banned( self, result, track, entry ):
+        '''
+        Callback for when the track is finally marked as banned or when the 
+        action failed for some reason. It informs the user of the result of 
+        the action.
+        '''
         #show a different message for fail/success
         if isinstance( result, Exception ):
             titulo = 'Failed to ban track'
