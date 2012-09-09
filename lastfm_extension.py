@@ -273,7 +273,7 @@ class LastFMExtension( object ):
         enabled = settings[key][self.extension_name]['enabled']
 
         if enabled:
-            if plugin.connected:
+            if not self.initialised and plugin.connected:
                 self.initialise( plugin )
 
         elif self.initialised:
@@ -484,10 +484,6 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
         self.settings.connect( 'changed::%s' % Keys.CONNECTED,
                                 self.conection_changed, manager )
 
-        #conectamos una señal con la setting de loved para activar/desactivar
-        #la funcionalidad cuando sea necesario
-        self.settings.connect( 'changed::%s' % Keys.LOVED, self.connect_loved )
-
         #conectamos la señal del fingerprinter para activarlo/desactivarlo
         self.settings.connect( 'changed::%s' % Keys.FINGERPRINTER,
                                         self.activate_fingerprinter, manager )
@@ -523,10 +519,6 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
 
         manager.ensure_update()
 
-        #desconectamos las señales
-        if self.loved_id:
-            self.player.disconnect( self.loved_id )
-
         #desasignamos variables
         del self.db
         del self.player
@@ -546,48 +538,6 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
 
         del self.shell
         del self.uim
-
-    def get_track( self ):
-        entry = self.player.get_playing_entry()
-
-        if not entry or not self.settings[Keys.CONNECTED]:
-            return ( None, None )
-
-        title = unicode( entry.get_string( RB.RhythmDBPropType.TITLE ), 'utf-8' )
-        artist = unicode( entry.get_string( RB.RhythmDBPropType.ARTIST ), 'utf-8' )
-
-        return ( entry, self.network.get_track( artist, title ) )
-
-    def connect_loved( self, settings, key ):
-        try:
-            self.loved_id
-        except:
-            self.loved_id = None
-
-        #si la opcion esta habilitada, conectamos la señal
-        if settings[key] and settings[Keys.CONNECTED]:
-            self.loved_id = self.player.connect( 'playing-changed',
-                                                 self.loved_updater )
-        #sino, quitamos la señal
-        elif self.loved_id:
-            self.player.disconnect( self.loved_id )
-
-    def loved_updater ( self, sp, playing ):
-        if not playing:
-            return
-
-        entry, track = self.get_track()
-
-        if not entry or not track:
-            return
-
-        #obtenemos el loved asincronamente
-        async( track.is_loved, self.update_loved, entry )()
-
-    def update_loved( self, loved, entry ):
-        if type( loved ) is bool and loved:
-            self.db.entry_set( entry, RB.RhythmDBPropType.RATING, 5 )
-            self.db.commit()
 
     def activate_fingerprinter( self, settings, key, manager ):
         try:
@@ -656,7 +606,6 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
                 session_key=settings[Keys.SESSION] )
         else:
             self.network = None
-
-        self.connect_loved( settings, Keys.LOVED )
+       
         self.activate_fingerprinter( settings, Keys.FINGERPRINTER, manager )
 
