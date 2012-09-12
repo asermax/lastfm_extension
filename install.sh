@@ -63,7 +63,7 @@ MATCHER="matcher.py"
 
 #install the glib schema
 echo "Installing glib schemas (admin password needed):"
-sudo cp "${PLUGIN_PATH}${GLIB_SCHEME}" "$GLIB_DIR"
+sudo cp "${SCRIPT_PATH}${GLIB_SCHEME}" "$GLIB_DIR"
 sudo glib-compile-schemas "$GLIB_DIR"
 
 #install the plugin; the install path depends on the install mode
