@@ -24,19 +24,13 @@ import rb
 from ConfigParser import SafeConfigParser
 import imp
 
-try:
-    import LastFMExtensionFingerprinter
-    from LastFMExtensionFingerprinter import LastFMFingerprinter as Fingerprinter
-except Exception as e:
-    Fingerprinter = e
-
+import LastFMExtensionKeys
 import LastFMExtensionKeys as Keys
 import LastFMExtensionUtils
-import LastFMExtensionGui as GUI
-from LastFMExtensionUtils import asynchronous_call as async, notify
 from LastFMExtensionGui import ConfigDialog
 
 import gettext
+
 gettext.install( 'rhythmbox', RB.locale_dir(), unicode=True )
 
 ui_str = """
@@ -141,7 +135,7 @@ class LastFMExtension( object ):
         '''
         pass
 
-    def connection_changed( self, plugin ):
+    def connection_changed( self, settings, key, plugin ):
         '''
         Callback for changes in the connection of the plugin. It ensures that 
         the extension is reenabled (if enabled in the first place) when a 
@@ -389,7 +383,9 @@ class LastFMExtensionBag( object ):
 
                     if ext_class:
                         self.extensions[extension] = ext_class( plugin )
-
+                
+                except Exception as ex:
+                    print ex.message
                 finally:
                     if fp:
                         fp.close()
@@ -436,99 +432,29 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
 
     @property
     def connected( self ):
-        def fget( self ):
-            return self.settings['connected']
+        return self.settings['connected']
 
-        def fset( self, connect ):
-            self.settings['connected'] = connect
+    @connected.setter
+    def connected( self, connect ):
+        self.settings['connected'] = connect
 
-        return locals()
 
     def do_activate( self ):
-
-        #=======================================================================
-        # TODO: Before going to the extensions, the plugin should
-        #       - Connect the settings
-        #       - Create a network if it's connected, and from there 
-        #
-        #       The enabling proccess goes like this:
-        #       - Iterate over all the extensions names
-        #         - Create an instance of the extension
-        #         - Initialise the extensions that ARE ENABLED
-        #         - Connect a signal to it's settings key to a generic function
-        #           that calls 'dismantle' when disabled or 'initialise' when
-        #           enabled
-        #       The disabling process goes like this:
-        #       - Iterate over all the extensions names
-        #         - Call dismantle on all enabled extensions
-        #         - Disconnect the signals to enable/disable the plugin
-        #         - Delete the instance of the extension
-        #=======================================================================
-
-        #obtenemos el shell y el player
-        shell = self.object
-        player = shell.props.shell_player
-
         #inicializamos el modulo de notificacion
         LastFMExtensionUtils.init( rb.find_plugin_file( self, LASTFM_ICON ) )
 
-        manager = shell.props.ui_manager
-
-        #guardamos la db como atributo
-        self.db = shell.get_property( 'db' )
-
-        #guardamos el player en una variable para tenerla mas a mano
-        self.player = player
-
         #conectamos la señal para conectar o desconectar
         self.settings.connect( 'changed::%s' % Keys.CONNECTED,
-                                self.conection_changed, manager )
-
-        #conectamos la señal del fingerprinter para activarlo/desactivarlo
-        self.settings.connect( 'changed::%s' % Keys.FINGERPRINTER,
-                                        self.activate_fingerprinter, manager )
-
-        #inicializamos la network si estan los datos disponibles
-        self.conection_changed( self.settings, Keys.CONNECTED, manager )
-
-        #TEST ONLY - REMOVE LATER
+                                self.conection_changed )
+        
+        #asign variables and initialise the network and extensions
+        self.conection_changed( self.settings, LastFMExtensionKeys.CONNECTED )
+        
         self.shell = self.object
         self.uim = self.object.props.ui_manager
         LastFMExtensionBag.initialise_instance( self )
 
-    def do_deactivate( self ):
-        shell = self.object
-
-        #variables que pueden no estar inicializadas
-        try:
-            self.ui_cm
-        except:
-            self.ui_cm = None
-
-        try:
-            self.fingerprinter
-        except:
-            self.fingerprinter = None
-
-        #destruimos la ui
-        manager = shell.props.ui_manager
-
-        if self.ui_cm:
-            manager.remove_action_group( self.finger_action_group )
-            manager.remove_ui( self.ui_cm )
-
-        manager.ensure_update()
-
-        #desasignamos variables
-        del self.db
-        del self.player
-        del self.settings
-
-        #borramos el fingerprinter si existe
-        if self.fingerprinter:
-            del self.finger_action_group
-            del self.fingerprinter
-
+    def do_deactivate( self ):    
         #borramos la network si existe
         if self.network:
             del self.network
@@ -539,66 +465,7 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
         del self.shell
         del self.uim
 
-    def activate_fingerprinter( self, settings, key, manager ):
-        try:
-            self.fingerprinter
-        except:
-            self.fingerprinter = None
-
-        #show error if the module couldn't be loaded
-        if settings[key] and isinstance( Fingerprinter, Exception ):
-            #this means the lastfp module isn't present
-            settings[key] = False
-            GUI.show_error_message( Fingerprinter.message )
-
-        #if there's already a fingerprinter, deactivate it
-        elif self.fingerprinter:
-            manager.remove_action_group( self.finger_action_group )
-            manager.remove_ui( self.ui_cm )
-
-            del self.finger_action_group
-            del self.ui_cm
-            del self.fingerprinter
-
-        #if there isn't a fingerprinter and it's supposed to be, create it
-        elif settings[key] and settings[Keys.CONNECTED]:
-            #creamos el fingerprinter
-            self.fingerprinter = Fingerprinter( self )
-
-            #agregamos la action para el fingerprinter
-            self.finger_action_group = Gtk.ActionGroup( 
-                                            'LastFMExtensionFingerprinter' )
-            action_fingerprint = Gtk.Action( 'FingerprintSong',
-                                            _( '_Fingerprint Song' ),
-                                            _( "Get this song fingerprinted." ),
-                                            None )
-            icon = Gio.FileIcon.new( Gio.File.new_for_path( 
-                                rb.find_plugin_file( self, LASTFM_ICON ) ) )
-            action_fingerprint.set_gicon( icon )
-
-            action_fingerprint.connect( 'activate', self.fingerprint_song )
-
-            self.finger_action_group.add_action( action_fingerprint )
-            manager.insert_action_group( self.finger_action_group, -1 )
-
-            #agregamos los menues contextuales
-            self.ui_cm = manager.add_ui_from_string( 
-                                  LastFMExtensionFingerprinter.ui_context_menu )
-        manager.ensure_update()
-
-    def get_selected_songs( self ):
-        shell = self.object
-
-        page = shell.props.selected_page
-        selected = page.get_entry_view().get_selected_entries()
-
-        return selected
-
-    def fingerprint_song( self, _ ):
-        for entry in self.get_selected_songs():
-            self.fingerprinter.request_fingerprint( entry )
-
-    def conection_changed( self, settings, key, manager ):
+    def conection_changed( self, settings, key ):
         if settings[key]:
             self.network = pylast.LastFMNetwork( 
                 api_key=Keys.API_KEY,
@@ -606,6 +473,3 @@ class LastFMExtensionPlugin ( GObject.Object, Peas.Activatable ):
                 session_key=settings[Keys.SESSION] )
         else:
             self.network = None
-       
-        self.activate_fingerprinter( settings, Keys.FINGERPRINTER, manager )
-
