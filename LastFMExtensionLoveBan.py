@@ -164,7 +164,7 @@ class Extension( LastFMExtensionWithPlayer ):
         Callback for the playing-changed signal. Enables or disables the buttons
         for the extension.
         '''
-        self._enable_buttons( plugin.player.get_playing_entry() is not None )
+        self._enable_buttons( self.player.get_playing_entry() is not None )
 
     def _enable_buttons( self, enable ):
         '''
