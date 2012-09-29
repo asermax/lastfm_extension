@@ -88,15 +88,15 @@ class ConfigDialog(GObject.Object, PeasGtk.Configurable):
         checkbutton.set_active(self.settings[key])
 
     def _login(self, button, label):
-        #mostramos la pagina para aceptar la conexion
+        # show the page to login
         network = pylast.LastFMNetwork(Keys.API_KEY, Keys.API_SECRET)
         skey_generator = pylast.SessionKeyGenerator(network)
         url = skey_generator.get_web_auth_url()
 
-        #desconectamos la señal anterior del boton
+        # disconnect the button signal
         button.disconnect(self._b_id)
 
-        #cambiamos el label y conectamos la nueva señal
+        # change the label and connect new signal
         button.set_label('Press again once allowed')
         self._b_id = button.connect('clicked', self._connect, label,
                                      skey_generator, url)
@@ -105,40 +105,38 @@ class ConfigDialog(GObject.Object, PeasGtk.Configurable):
         webbrowser.open_new(url)
 
     def _connect(self, button, label, skey_generator, url):
-        #desconectamos la señal anterior
+        # disconnects old signal
         button.disconnect(self._b_id)
 
         try:
-            #intentamos obtener la session key y conectamos
+            # try to get the session key and get connected
             self.settings[Keys.SESSION] = \
                                 skey_generator.get_web_auth_session_key(url)
             self.settings[Keys.CONNECTED] = True
 
-            #reconfiguramos la gui
+            # reconfigure the ui
             label.set_text('Logged')
             button.set_label('Logout')
 
-            #conectamos la nueva señal    
+            # connect the new signal
             self._b_id = button.connect('clicked', self._logout, label)
 
         except:
-            #reconfiguramos la gui para indicar que fallo
+            # reconfigure the ui to indicate the failure
             label.set_text('Connection failed')
             button.set_label('Login')
 
-            #conectamos la nueva señal         
+            # connect the new signal
             self._b_id = button.connect('clicked', self._login, label)
 
     def _logout(self, button, label):
-        #cambiamos el estado
+        # change the state
         self.settings[Keys.CONNECTED] = False
 
-        #reconfiguramos la gui
+        # reconfigure ui
         label.set_text('Not Logged')
         button.set_label('Login')
 
-        #desconectamos la señal anterior
+        # disconect old signal and connect new one
         button.disconnect(self._b_id)
-
-        #conectamos la nueva señal 
         self._b_id = button.connect('clicked', self._login, label)
