@@ -25,39 +25,39 @@ from LastFMExtensionUtils import asynchronous_call as async
 NAME = "LastFMLovedSync"
 DESCRIPTION = "Sync your tracks loved status with Last.FM!"
 
-class Extension( LastFMExtensionWithPlayer ):
+class Extension(LastFMExtensionWithPlayer):
     '''
-    This extensions allows the player to synchronize a track loved status the 
+    This extensions allows the player to synchronize a track loved status the
     rating saved locally.
     '''
 
-    def __init__( self, plugin ):
+    def __init__(self, plugin):
         '''
         Initializes the extension.
-        '''        
-        super( Extension, self ).__init__( plugin )
+        '''
+        super(Extension, self).__init__(plugin)
 
         self.db = plugin.shell.props.db
 
     @property
-    def extension_name( self ):
+    def extension_name(self):
         '''
         Returns the extension name. Read only property.
         '''
         return NAME
 
     @property
-    def extension_desc( self ):
+    def extension_desc(self):
         '''
         Returns a description for the extensions. Read only property.
         '''
         return DESCRIPTION
 
-    def playing_changed( self, shell_player, playing, plugin ):
+    def playing_changed(self, shell_player, playing, plugin):
         '''
         Callback for the playing-changed signal. Initiates the process to
         retrieve the loved status from LastFM.
-        '''        
+        '''
         #check if the player is playing a song
         if not playing:
             return
@@ -69,15 +69,15 @@ class Extension( LastFMExtensionWithPlayer ):
             return
 
         #obtenemos la playcount de lastfm asincronamente
-        async( track.is_loved, self._update_loved, entry )()
+        async(track.is_loved, self._update_loved, entry)()
 
-    def _update_loved( self, loved, entry ):
+    def _update_loved(self, loved, entry):
         '''
         Callback that actually sets the rating on the track, once retrieved the
         loved status of it.
-        '''        
-        if type( loved ) is bool and loved:
-            self.db.entry_set( entry, RB.RhythmDBPropType.RATING, 5 )
+        '''
+        if type(loved) is bool and loved:
+            self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)
             self.db.commit()
 
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """A simple program for using pylastfp to fingerprint MP3 files. Usage:
 
-    $ python matcher.py mysterious_music.mp3   
+    $ python matcher.py mysterious_music.mp3
 """
-import sys, os, lastfp 
+import sys, os, lastfp
 
 import LastFMExtensionKeys as Keys
 
@@ -22,17 +22,17 @@ if __name__ == '__main__':
     if not args:
         print "usage: matcher.py mysterious_music.mp3"
         sys.exit(1)
-        
+
     path = os.path.abspath(os.path.expanduser(args[0]))
     artist = args[1]
-    album = args[2]    
+    album = args[2]
     title = args[3]
 
     # Perform match.
     try:
-        fpid = lastfp.match_file( Keys.API_KEY, path, metadata={ 'artist':artist,
+        fpid = lastfp.match_file(Keys.API_KEY, path, metadata={ 'artist':artist,
                                                          'album':album,
-                                                         'track':title } )
+                                                         'track':title })
     except lastfp.ExtractionError:
         print 'Fingerprinting failed! (Is the song too short?)'
         sys.exit(1)
