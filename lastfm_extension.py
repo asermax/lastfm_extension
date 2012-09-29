@@ -60,7 +60,7 @@ class LastFMExtension(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, plugin):
+    def __init__(self, plugin, order):
         '''
         By default, all extension are initialized allocating a 'settings'
         attribute that points to a Gio.Settings object binded to the global
@@ -69,6 +69,7 @@ class LastFMExtension(object):
         '''
         self.settings = plugin.settings
         self.initialised = False
+        self.order = order
 
         if plugin.connected and self.enabled:
             self.initialise(plugin)
@@ -284,13 +285,13 @@ class LastFMExtensionWithPlayer(LastFMExtension):
     implements an utility method to get the current track data.
     '''
 
-    def __init__(self, plugin):
+    def __init__(self, plugin, order):
         '''
         Initialises the plugin, saving the shell player on self.player
         '''
         self.player = plugin.shell.props.shell_player
 
-        super(LastFMExtensionWithPlayer, self).__init__(plugin)
+        super(LastFMExtensionWithPlayer, self).__init__(plugin, order)
 
     def connect_signals(self, plugin):
         '''
@@ -383,7 +384,12 @@ class LastFMExtensionBag(object):
                     ext_class = getattr(module, 'Extension')
 
                     if ext_class:
-                        self.extensions[extension] = ext_class(plugin)
+                        try:
+                            order = parser.getint(extension, 'order')
+                        except:
+                            order = 0
+
+                        self.extensions[extension] = ext_class(plugin, order)
 
                 except Exception as ex:
                     print ex.message

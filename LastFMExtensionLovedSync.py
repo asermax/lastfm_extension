@@ -31,11 +31,11 @@ class Extension(LastFMExtensionWithPlayer):
     rating saved locally.
     '''
 
-    def __init__(self, plugin):
+    def __init__(self, plugin, order):
         '''
         Initializes the extension.
         '''
-        super(Extension, self).__init__(plugin)
+        super(Extension, self).__init__(plugin, order)
 
         self.db = plugin.shell.props.db
 

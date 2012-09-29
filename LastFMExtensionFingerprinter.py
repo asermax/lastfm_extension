@@ -86,12 +86,12 @@ class Extension(LastFMExtension):
     let the user decide if he wants to save the result and which match to use.
     '''
 
-    def __init__(self, plugin):
+    def __init__(self, plugin, order):
         '''
         Initialises the extension, using the base plugin to populate some of the
         internal properties used on the fingerprinting process.
         '''
-        super(Extension, self).__init__(plugin)
+        super(Extension, self).__init__(plugin, order)
 
         #rhythmbox database
         self.db = plugin.shell.props.db

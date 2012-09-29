@@ -77,7 +77,9 @@ class ConfigDialog(GObject.Object, PeasGtk.Configurable):
         self._b_id = button.connect('clicked', button_callback, label)
 
         # add each extension's widget
-        for extension in LastFMExtensionBag.get_instance().extensions.values():
+        extensions = LastFMExtensionBag.get_instance().extensions.values()
+        for extension in sorted(extensions, key=lambda ext: ext.order,
+                                reverse=True):
             extensions_box.pack_end(extension.get_configuration_widget(), False,
                                    True, 0)
 

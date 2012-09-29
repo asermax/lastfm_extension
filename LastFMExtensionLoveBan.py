@@ -48,11 +48,11 @@ class Extension(LastFMExtensionWithPlayer):
     This extensions adds the posibility to love or ban the current playing track.
     '''
 
-    def __init__(self, plugin):
+    def __init__(self, plugin, order):
         '''
         Initializes the extension.
         '''
-        super(Extension, self).__init__(plugin)
+        super(Extension, self).__init__(plugin, order)
 
         self.db = plugin.shell.props.db
 
