@@ -11,10 +11,5 @@
             <summary>If the plugin is connected with LastFM or not.</summary>
             <description>Determines if the plugin is actually connected with LastFM or not. It's also used as communication medium between the config dialog and the plugin itself to manage the connection.</description>
         </key>
-        <key type="a{sa{sb}}" name="extensions">
-        	<default>{}</default>
-        	<description>Extensions' specific settings.</description>
-        	<summary>Construction to save extensions' specific settings. Initially, all extension should define a 'enabled' key to determine if it should be enabled or not.</summary>
-        </key>
     </schema>
 </schemalist>
