@@ -22,22 +22,22 @@ from gi.repository import RB
 from LastFMExtensionUtils import asynchronous_call as async
 
 #name and description
-NAME = "LastFMPlaycountSync"
-DESCRIPTION = "Sync your tracks playcount with Last.FM!"
+NAME = "LastFMLovedSync"
+DESCRIPTION = "Sync your tracks loved status with Last.FM!"
 
 class Extension(LastFMExtensionWithPlayer):
     '''
-    This extensions allows the player to synchronize a track playcount with the
-    one saved on LastFM servers.
+    This extensions allows the player to synchronize a track loved status the
+    rating saved locally.
     '''
 
-    def __init__(self, plugin, order):
+    def __init__(self, plugin, config):
         '''
         Initializes the extension.
         '''
-        super(Extension, self).__init__(plugin, order)
+        super(Extension, self).__init__(plugin, config)
 
-        self.db = plugin.shell.props.db
+        self.order = 1
 
     @property
     def extension_name(self):
@@ -56,7 +56,7 @@ class Extension(LastFMExtensionWithPlayer):
     def playing_changed(self, shell_player, playing, plugin):
         '''
         Callback for the playing-changed signal. Initiates the process to
-        retrieve the playcount from LastFM.
+        retrieve the loved status from LastFM.
         '''
         #check if the player is playing a song
         if not playing:
@@ -69,20 +69,15 @@ class Extension(LastFMExtensionWithPlayer):
             return
 
         #obtenemos la playcount de lastfm asincronamente
-        async(track.get_playcount, self._update_playcount, entry)(True)
+        async(track.is_loved, self._update_loved, entry)()
 
-    def _update_playcount(self, playcount, entry):
+    def _update_loved(self, loved, entry):
         '''
-        Callback that actually sets the playcount, once retrieved.
-        The playcount is updated ONLY if the one retreived from LastFM is
-        HIGHER than the one stored locally.
+        Callback that actually sets the rating on the track, once retrieved the
+        loved status of it.
         '''
-        #get current playcount               
-        old_playcount = entry.get_ulong(RB.RhythmDBPropType.PLAY_COUNT)
-
-        #update the playcount if it's valid and is higher than the local one
-        if playcount and type(playcount) is int and old_playcount < playcount:
-            self.db.entry_set(entry, RB.RhythmDBPropType.PLAY_COUNT, playcount)
+        if type(loved) is bool and loved:
+            self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)
             self.db.commit()
 
 

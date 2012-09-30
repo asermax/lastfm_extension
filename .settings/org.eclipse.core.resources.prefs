@@ -1,11 +1,12 @@
 eclipse.preferences.version=1
-encoding/LastFMExtensionFingerprinter.py=utf-8
+encoding//extensions/LastFMExtensionFingerprinter.py=utf-8
+encoding//extensions/LastFMExtensionLoveBan.py=utf-8
+encoding//extensions/LastFMExtensionLovedSync.py=utf-8
+encoding//extensions/LastFMExtensionPlaycountSync.py=utf-8
+encoding/LastFMExtensionConnection.py=utf-8
 encoding/LastFMExtensionGenreGuesser.py=utf-8
 encoding/LastFMExtensionGui.py=utf-8
 encoding/LastFMExtensionKeys.py=utf-8
-encoding/LastFMExtensionLoveBan.py=utf-8
-encoding/LastFMExtensionLovedSync.py=utf-8
-encoding/LastFMExtensionPlaycountSync.py=utf-8
 encoding/LastFMExtensionUtils.py=utf-8
 encoding/lastfm_extension.py=utf-8
 encoding/pylast.py=utf-8
