@@ -256,9 +256,15 @@ class Extension(LastFMExtension):
         #show the fingerprinter dialog
         ui = self._show_dialog(entry)
 
+        #get artist, album, track and path    
+        path = unquote(urlparse(entry.get_playback_uri()).path)
+        artist = entry.get_string(RB.RhythmDBPropType.ARTIST)
+        album = entry.get_string(RB.RhythmDBPropType.ALBUM)
+        title = entry.get_string(RB.RhythmDBPropType.TITLE)
+
         #fingerprint and match the entry asynchronously
-        async(self._match, self._append_options, entry, *ui)(entry,
-                                                              self.network)
+        async(self._match, self._append_options, entry, *ui)(self.network,
+            path, artist, album, title)
 
     def _show_dialog(self, entry):
         '''
@@ -286,19 +292,13 @@ class Extension(LastFMExtension):
 
         return main_box, status_box, action_save
 
-    def _match(self, entry, network):
+    def _match(self, network, path, artist, album, title):
         '''
         This method encapsulates the fingerprinting and matching process.
-        It takes info from the entry to realize the fingerprinting and uses pylast
-        to retrieve the tracks info, which is finally returned as a list of Track
-        instances.
+        It takes info from the entry to realize the fingerprinting and uses
+        pylast to retrieve the tracks info, which is finally returned as a list
+        of Track instances.
         '''
-        #get artist, album, track and path    
-        path = unquote(urlparse(entry.get_playback_uri()).path)
-        artist = entry.get_string(RB.RhythmDBPropType.ARTIST)
-        album = entry.get_string(RB.RhythmDBPropType.ALBUM)
-        title = entry.get_string(RB.RhythmDBPropType.TITLE)
-
         #match the song    
         try:
             fpid = check_output(
@@ -401,14 +401,15 @@ class Extension(LastFMExtension):
 
                 #asynchronously retrieve extra data
                 if extra.get_active():
+                    playcount = entry.get_ulong(RB.RhythmDBPropType.PLAY_COUNT)
                     async(self._fetch_extra_info,
-                           self._delayed_properties_save, entry)(track)
+                        self._delayed_properties_save, entry)(track, playcount)
 
                 break
 
         self._close_fingerprinter_window(dialog)
 
-    def _fetch_extra_info(self, track):
+    def _fetch_extra_info(self, track, old_playcount):
         '''
         Fetch extra info from Last.fm.
         For now, it fetchs:
@@ -424,9 +425,11 @@ class Extension(LastFMExtension):
         #list for extra info with it's db keys
         info = []
 
-        #play count
-        info.append((RB.RhythmDBPropType.PLAY_COUNT,
-                      track.get_playcount(True)))
+        #play count - only add if it's bigger than the old playcount
+        new_playcount = track.get_playcount(True)
+
+        if new_playcount > old_playcount:
+            info.append((RB.RhythmDBPropType.PLAY_COUNT, new_playcount))
 
         #genre
         genre = self.genre_guesser.guess(track)
@@ -470,10 +473,13 @@ class Extension(LastFMExtension):
 
     def _delayed_properties_save(self, info, entry):
         '''
-        Callback used after extra info is fetched, to save it to the properties of
-        the entry.
+        Callback used after extra info is fetched, to save it to the properties
+        of the entry.
         '''
-        for prop in info:
-            idle_add(self.db.entry_set, entry, *prop)
+        def do_save(info, entry):
+            for prop in info:
+                self.db.entry_set(entry, *prop)
 
-        idle_add(self.db.commit)
+            self.db.commit()
+
+        idle_add(do_save, info, entry)
