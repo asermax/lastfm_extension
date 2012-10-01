@@ -18,40 +18,35 @@
 #Utilidades para el plugin
 
 import threading
-from gi.repository import GObject, GdkPixbuf, Notify
+from gi.repository import Gdk, GdkPixbuf, GLib, Notify
 
-#icono utilizado para las notificaciones
+# icon used for notifications
 icon = None
 
-'''
-Inicializa este modulo de manera que:
-- Se puedan utilizar threads junto con gtk.
-- Se muestre un ícono en las notificaciones.
-'''
 def init(icon_path):
-    #inicializa los threads de gobject
-    GObject.threads_init()
-
-    #inicializa el icono para notificaciones
+    '''
+    Initialize the module Notification system.
+    '''
+    # initialize icon
     global icon
     icon = GdkPixbuf.Pixbuf.new_from_file(icon_path)
 
-    #inicializamos libnotify
+    # initialize Notify
     if not Notify.is_initted():
         Notify.init("Rhythmbox")
 
-'''
-Permite realizar llamadas asincronas, envolviendo una función cualquiera
-en otra función que cuando es ejecutada, lo hace en un thread separado.
-Ademas, permite agregar una función de callback, junto con argumentos
-posicionales y keywords que sera llamada una vez que se termine la
-ejecución de la función asincrona. Esta función DEBE estar preparada para
-recibir como primer argumento el RESULTADO de la ejecución de la función
-principal, el cual puede ser tanto un OBJETO común como una EXCEPCIÓN.
-'''
 def asynchronous_call(fun, callback=None, *cargs, **ckwargs):
-    #función que wrappea la función original y ejecuta el callback una
-    #vez terminada la ejecución
+    '''
+    This function allows to make asynchronous calls, wrapping a function in
+    another one, that is executed in a separated thread.
+    Also, it allows to set a callback, together with it's arguments, that will
+    be called once the main function processing finishes. The callback function
+    MUST recieve as first argument the RESULT from the main function, which
+    can be either the result of the execution or an Exception that could've
+    been trhown during it's execution.
+    '''
+    # function that wraps the original function and calls the callback once
+    # the processing is finished
     def worker(*args, **kwargs):
         try:
             result = fun(*args, **kwargs)
@@ -61,32 +56,36 @@ def asynchronous_call(fun, callback=None, *cargs, **ckwargs):
         if callback:
             callback(result, *cargs, **ckwargs)
 
-    #función que wrappea la ejecución asincrona en un thread aparte
     def fun2(*args, **kwargs):
         threading.Thread(target=worker, args=args, kwargs=kwargs).start()
 
     return fun2
 
-'''
-Permite realizar una llamada asincrona desde un thread cualquiera a un
-componente de UI que corre sobre el main loop de gtk. Se DEBE utilizar
-esta función para realizar este tipo de tareas, de otra forma gtk crashea.
-'''
-def idle_add(fun, *args):
-    GObject.idle_add(fun, *args)
 
-'''
-Muestra una notificación de escritorio utilizando la libreria de notificación
-libnotify (a través de los bindings de pynotify)
-'''
+def idle_add(fun, *args):
+    '''
+    Allows to add a function from any thread to be executed on Gtk main loop.
+    This function MUST be used when trying to update something related with
+    Gtk or GObject.
+    '''
+    def idle_call(data):
+        fun(*data)
+
+        return False
+
+    Gdk.threads_add_idle(GLib.PRIORITY_DEFAULT_IDLE, idle_call, args)
+
 def notify(title, text):
-    #crea la notificación
+    '''
+    Shows a desktop notification.
+    '''
+    # create the notification
     notification = Notify.Notification.new(title, text, None)
 
-    #le agrega el ícono si el mismo fué definido
+    # add the icon if it's defined
     if icon:
         notification.set_icon_from_pixbuf(icon)
 
-    #muestra la notificación
+    # show the notification
     notification.show()
 
