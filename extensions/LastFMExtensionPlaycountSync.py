@@ -19,7 +19,7 @@
 from lastfm_extension import LastFMExtensionWithPlayer
 from gi.repository import RB
 
-from LastFMExtensionUtils import asynchronous_call as async
+from LastFMExtensionUtils import asynchronous_call as async, idle_add
 
 #name and description
 NAME = "LastFMPlaycountSync"
@@ -82,8 +82,12 @@ class Extension(LastFMExtensionWithPlayer):
 
         #update the playcount if it's valid and is higher than the local one
         if playcount and type(playcount) is int and old_playcount < playcount:
-            self.db.entry_set(entry, RB.RhythmDBPropType.PLAY_COUNT, playcount)
-            self.db.commit()
+            def set_playcount(entry, playcount):
+                self.db.entry_set(entry, RB.RhythmDBPropType.PLAY_COUNT,
+                    playcount)
+                self.db.commit()
+
+            idle_add(set_playcount, entry, playcount)
 
 
 

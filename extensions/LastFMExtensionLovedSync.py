@@ -19,7 +19,7 @@
 from lastfm_extension import LastFMExtensionWithPlayer
 from gi.repository import RB
 
-from LastFMExtensionUtils import asynchronous_call as async
+from LastFMExtensionUtils import asynchronous_call as async, idle_add
 
 #name and description
 NAME = "LastFMLovedSync"
@@ -77,8 +77,11 @@ class Extension(LastFMExtensionWithPlayer):
         loved status of it.
         '''
         if type(loved) is bool and loved:
-            self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)
-            self.db.commit()
+            def set_rating(entry):
+                self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)
+                self.db.commit()
+
+            idle_add(set_rating, entry)
 
 
 
