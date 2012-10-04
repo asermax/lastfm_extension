@@ -81,7 +81,7 @@ class Extension(LastFMExtensionWithPlayer):
         self.action_group = Gtk.ActionGroup(self.extension_name)
 
         #create love action
-        self.action_love = Gtk.Action('LoveTrack', _('_Love Track'),
+        self.action_love = Gtk.Action('LoveTrack', _('_Love'),
                                        _("Love this track."), None)
         icon = Gio.FileIcon.new(Gio.File.new_for_path(
                                       rb.find_plugin_file(plugin,
@@ -90,7 +90,7 @@ class Extension(LastFMExtensionWithPlayer):
         self.action_group.add_action(self.action_love)
 
         #create ban action
-        self.action_ban = Gtk.Action('BanTrack', _('_Ban Track'),
+        self.action_ban = Gtk.Action('BanTrack', _('_Ban'),
                                 _("Ban this track."),
                                 None)
         icon = Gio.FileIcon.new(Gio.File.new_for_path(
