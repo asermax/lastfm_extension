@@ -181,7 +181,7 @@ class Extension(LastFMExtensionWithPlayer):
         action failed for some reason. It informs the user of the result of
         the action.
         '''
-        #show a different message for fail/success
+        # show a different message for fail/success
         if isinstance(result, Exception):
             titulo = 'Failed to love track'
             texto = 'There was an error in the connection while ' + \
@@ -193,11 +193,11 @@ class Extension(LastFMExtensionWithPlayer):
             texto = 'You just marked the track %s - %s as loved' % \
               (track.get_title().encode('utf-8'), track.get_artist())
 
-        notify(titulo, texto)
+            # bonus: 5 stars to the loved track
+            self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)
+            self.db.commit()
 
-        #bonus: 5 stars to the loved track
-        self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)
-        self.db.commit()
+        notify(titulo, texto)
 
     def _ban_track(self, _):
         '''
@@ -217,7 +217,7 @@ class Extension(LastFMExtensionWithPlayer):
         action failed for some reason. It informs the user of the result of
         the action.
         '''
-        #show a different message for fail/success
+        # show a different message for fail/success
         if isinstance(result, Exception):
             titulo = 'Failed to ban track'
             texto = 'There was an error in the connection while ' + \
@@ -229,8 +229,8 @@ class Extension(LastFMExtensionWithPlayer):
             texto = 'You just marked the track %s - %s as banned' % \
               (track.get_title().encode('utf-8'), track.get_artist())
 
-        notify(titulo, texto)
+            # bonus: 0 stars to the loved track
+            self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 0)
+            self.db.commit()
 
-        #bonus: 0 stars to the loved track
-        self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 0)
-        self.db.commit()
+        notify(titulo, texto)
