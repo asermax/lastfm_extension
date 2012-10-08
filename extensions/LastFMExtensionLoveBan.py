@@ -99,8 +99,8 @@ class Extension(LastFMExtensionWithPlayer):
         self.action_ban.set_gicon(icon)
         self.action_group.add_action(self.action_ban)
 
-        #disable the buttons initially
-        self._enable_buttons(False)
+        # enable the buttons depending if there's a song playing
+        self.playing_changed()
 
         #insert the action group to the uim
         plugin.uim.insert_action_group(self.action_group)
@@ -150,7 +150,7 @@ class Extension(LastFMExtensionWithPlayer):
         del self.action_love
         del self.action_ban
 
-    def playing_changed(self, shell_player, playing, plugin):
+    def playing_changed(self, *args):
         '''
         Callback for the playing-changed signal. Enables or disables the buttons
         for the extension.
