@@ -186,6 +186,8 @@ class Extension(LastFMExtensionWithPlayer):
             titulo = 'Failed to love track'
             texto = 'There was an error in the connection while ' + \
                     'trying to mark the track as loved.'
+
+            print result
         else:
             titulo = 'Loved track'
             texto = 'You just marked the track %s - %s as loved' % \
@@ -220,6 +222,8 @@ class Extension(LastFMExtensionWithPlayer):
             titulo = 'Failed to ban track'
             texto = 'There was an error in the connection while ' + \
                     'trying to mark the track as banned.'
+
+            print result
         else:
             titulo = 'Banned track'
             texto = 'You just marked the track %s - %s as banned' % \
