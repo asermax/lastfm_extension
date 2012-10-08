@@ -21,7 +21,7 @@ from gi.repository import Gtk, Gio, RB
 
 import rb
 
-from LastFMExtensionUtils import asynchronous_call as async, notify
+from LastFMExtensionUtils import asynchronous_call as async, notify, idle_add
 
 #name and description
 NAME = "LastFMLoveBan"
@@ -194,8 +194,7 @@ class Extension(LastFMExtensionWithPlayer):
               (track.get_title().encode('utf-8'), track.get_artist())
 
             # bonus: 5 stars to the loved track
-            self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 5)
-            self.db.commit()
+            idle_add(self._set_rating, entry, 5)
 
         notify(titulo, texto)
 
@@ -230,7 +229,10 @@ class Extension(LastFMExtensionWithPlayer):
               (track.get_title().encode('utf-8'), track.get_artist())
 
             # bonus: 0 stars to the loved track
-            self.db.entry_set(entry, RB.RhythmDBPropType.RATING, 0)
-            self.db.commit()
+            idle_add(self._set_rating, entry, 0)
 
         notify(titulo, texto)
+
+    def _set_rating(self, entry, rating):
+        self.db.entry_set(entry, RB.RhythmDBPropType.RATING, rating)
+        self.db.commit()
