@@ -49,7 +49,6 @@ LASTFM_ICON = 'img/as.png'
 LOVE_ICON = 'img/love.png'
 BAN_ICON = 'img/ban.png'
 
-# TODO: transform the connection into a plugin
 # TODO: move all the configuration to the extensions configuration file
 
 class LastFMExtension(GObject.Object):
@@ -289,8 +288,8 @@ class LastFMExtensionWithPlayer(LastFMExtension):
 
     def destroy(self, plugin, config):
         '''
-        This method should be called ALWAYS before the deletion of the object or
-        the deactivation of the plugin. It makes sure that all the resources
+        This method should be called ALWAYS before the deletion of the object
+        or the deactivation of the plugin. It makes sure that all the resources
         this extension has taken up are freed.
         '''
         super(LastFMExtensionWithPlayer, self).destroy(plugin, config)
@@ -304,7 +303,7 @@ class LastFMExtensionWithPlayer(LastFMExtension):
         '''
         super(LastFMExtensionWithPlayer, self).connect_signals(plugin)
 
-        #connect to the playing change signal
+        # connect to the playing change signal
         self.playing_changed_id = self.player.connect('playing-changed',
                                                  self.playing_changed, plugin)
 
@@ -314,10 +313,10 @@ class LastFMExtensionWithPlayer(LastFMExtension):
         '''
         super(LastFMExtensionWithPlayer, self).disconnect_signals(plugin)
 
-        #disconnect signals
+        # disconnect signals
         self.player.disconnect(self.playing_changed_id)
 
-        #delete variables
+        # delete variables
         del self.playing_changed_id
 
     def playing_changed(self, shell_player, playing, plugin):
@@ -353,7 +352,7 @@ class LastFMExtensionBag(object):
     destroying all configured extensions.
     '''
 
-    #unique instance of this Bag
+    # unique instance of this Bag
     instance = None
 
     # extensions directory
@@ -375,13 +374,13 @@ class LastFMExtensionBag(object):
         config_parser = SafeConfigParser()
         config_parser.read(config_file)
 
-        #NOTE ABOUT THE CONFIG:
-        #I should probably port all the configuration to this file.
-        #It's way easier to manipulate the settings from here, and since now
-        #each extension is responsible to return it's configuration widget,
-        #there is no need to connect their activation or any other setting
-        #modification through Gio (except maybe the connection, but I can
-        #simulate that one someway else).
+        # NOTE ABOUT THE CONFIG:
+        # I should probably port all the configuration to this file.
+        # It's way easier to manipulate the settings from here, and since now
+        # each extension is responsible to return it's configuration widget,
+        # there is no need to connect their activation or any other setting
+        # modification through Gio (except maybe the connection, but I can
+        # simulate that one someway else).
 
         # load all the extensions and configure them
         for extension_class in extensions_class:
@@ -396,7 +395,7 @@ class LastFMExtensionBag(object):
         '''
         config_parser = SafeConfigParser()
 
-        #destroy all the extensions
+        # destroy all the extensions
         for extension in self.extensions.itervalues():
             extension.destroy(plugin, config_parser)
 
@@ -472,14 +471,14 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
 
 
     def do_activate(self):
-        #inicializamos el modulo de notificacion
+        # inicializamos el modulo de notificacion
         LastFMExtensionUtils.init(rb.find_plugin_file(self, LASTFM_ICON))
 
-        #conectamos la señal para conectar o desconectar
+        # conectamos la señal para conectar o desconectar
         self.settings.connect('changed::%s' % Keys.CONNECTED,
                                 self.conection_changed)
 
-        #asign variables and initialise the network and extensions
+        # asign variables and initialise the network and extensions
         self.conection_changed(self.settings, Keys.CONNECTED)
 
         self.shell = self.object
@@ -487,11 +486,11 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         LastFMExtensionBag.initialise_instance(self)
 
     def do_deactivate(self):
-        #borramos la network si existe
+        # borramos la network si existe
         if self.network:
             del self.network
 
-        #TESTING
+        # TESTING
         LastFMExtensionBag.destroy_instance(self)
 
         del self.shell

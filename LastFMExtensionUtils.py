@@ -15,10 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA.
-#Utilidades para el plugin
+# Utilidades para el plugin
+from gi.repository import Gdk
+from gi.repository import GdkPixbuf
+from gi.repository import GLib
+from gi.repository import Notify
+from ConfigParser import SafeConfigParser
 
+import os
 import threading
-from gi.repository import Gdk, GdkPixbuf, GLib, Notify
+import LastFMExtensionKeys
 
 # icon used for notifications
 icon = None
@@ -88,4 +94,57 @@ def notify(title, text):
 
     # show the notification
     notification.show()
+
+
+class Settings(SafeConfigParser, object):
+
+    def __init__(self, plugin):
+        super(Settings, self).__init__()
+
+        # initialise the config parser
+        self._config_file = os.path.join(plugin.plugin_info.get_data_dir(),
+             LastFMExtensionKeys.SETTINGS)
+        self.read(self._config_file)
+
+        # dictionary of observers for settings changes
+        self._observers = {}
+
+    def save(self):
+        with open(self._config_file, 'w') as conf_file:
+            self.write(conf_file)
+
+    def get_section(self, section):
+        return SettingsSection(self, section)
+
+    def connect(self, section, option, callback):
+        if section not in self._observers:
+            self._observers[section] = {}
+
+        if option not in self._observers[section]:
+            self._observers[section][option] = []
+
+        self._observers[section][option].append(callback)
+
+    def set(self, section, option, value=None):
+        SafeConfigParser.set(self, section, option, str(value))
+
+        if section in self._observers and option in self._observers[section]:
+            for callback in self._observers[section][option]:
+                callback(value)
+
+class SettingsSection(object):
+    def __init__(self, settings, section_name):
+        super(SettingsSection, self).__init__()
+
+        self._settings = settings
+        self._section = section_name
+
+    def __getattr__(self, attr):
+        def call_with_section(*args, **kwargs):
+            return getattr(self._settings, attr)(self._section, *args, **kwargs)
+
+        if attr.startswith('get') or attr == 'set' or attr == 'connect':
+            return call_with_section
+
+        super(SettingsSection, self).__getattr__(self, attr)
 
