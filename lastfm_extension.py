@@ -350,8 +350,6 @@ class LastFMExtensionBag(object):
         for extension in self.extensions.itervalues():
             extension.destroy(plugin)
 
-        self.settings.save()
-
     def discover_extensions(self, plugin):
         extensions = []
         ext_dir = rb.find_plugin_file(plugin, self.EXT_DIR)

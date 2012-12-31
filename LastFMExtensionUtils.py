@@ -131,9 +131,13 @@ class Settings(SafeConfigParser, object):
     def set(self, section, option, value=None):
         SafeConfigParser.set(self, section, option, str(value))
 
+		# comunicate the observers about the change
         if section in self._observers and option in self._observers[section]:
             for callback, data in self._observers[section][option]:
                 callback(value, *data)
+
+		# save the settings on the disk
+		self.save()
 
 class SettingsSection(object):
     def __init__(self, settings, section_name):
