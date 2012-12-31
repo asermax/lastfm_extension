@@ -34,6 +34,7 @@ from LastFMExtensionGui import ConfigDialog
 
 import gettext
 from LastFMExtensionKeys import ENABLED
+from ninja_ide.gui.menus.lib.aboutdialog import keys_desc
 
 gettext.install('rhythmbox', RB.locale_dir(), unicode=True)
 
@@ -102,6 +103,9 @@ class LastFMExtension(GObject.Object):
     @property
     def enabled(self):
         ''' Indicates if the extension is enabled. '''
+        if not self.settings.has_option(Keys.ENABLED):
+            self.enabled = False
+
         return self.settings.getboolean(Keys.ENABLED)
 
     @enabled.setter
@@ -407,6 +411,9 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
 
     @property
     def connected(self):
+        if not self.settings.has_option(Keys.CONNECTED):
+            self.settings.set(Keys.CONNECTED, False)
+
         return self.settings.getboolean(Keys.CONNECTED)
 
     def do_activate(self):
