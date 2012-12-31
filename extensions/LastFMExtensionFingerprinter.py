@@ -29,7 +29,7 @@ from LastFMExtensionGenreGuesser import LastFMGenreGuesser
 from LastFMExtensionUtils import asynchronous_call as async, idle_add
 import lastfm_extension
 
-#try to import lastfp
+# try to import lastfp
 class LastFMFingerprinterException(Exception):
     def __init__(self, message):
         super(LastFMFingerprinterException, self).__init__(message)
@@ -40,7 +40,7 @@ except:
     lastfp = LastFMFingerprinterException(
                                     'LastFM fingerprint library not found.')
 
-#constants
+# constants
 DIALOG_BUILDER_FILE = 'lastfmExtensionFingerprintDialog.glade'
 MATCHER = 'matcher.py'
 DIALOG_NAME = 'song-selection-dialog'
@@ -48,10 +48,10 @@ BOX = 'songe-selection-dialog-vbox'
 STATUS_BOX = 'statusBox'
 ACTION_SAVE = 'actionSave'
 
-#rhythmbox magic number for days in a year(??????)
+# rhythmbox magic number for days in a year(??????)
 DAYS = 365.2
 
-#name and description
+# name and description
 NAME = "LastFMFingerprinter"
 DESCRIPTION = "Fingerprint your songs and match them against Last.FM."
 
@@ -86,38 +86,38 @@ class Extension(LastFMExtension):
     let the user decide if he wants to save the result and which match to use.
     '''
 
-    def __init__(self, plugin, config):
+    def __init__(self, plugin, settings):
         '''
         Initialises the extension, using the base plugin to populate some of the
         internal properties used on the fingerprinting process.
         '''
-        super(Extension, self).__init__(plugin, config)
+        super(Extension, self).__init__(plugin, settings)
 
         self.order = 3
 
-        #rhythmbox database
+        # rhythmbox database
         self.db = plugin.shell.props.db
 
-        #rhythmbox shell
+        # rhythmbox shell
         self.shell = plugin.shell
 
-        #lastfm genre guesser
+        # lastfm genre guesser
         self.genre_guesser = LastFMGenreGuesser(plugin)
 
-        #save the matcher path
+        # save the matcher path
         self.matcher_path = rb.find_plugin_file(plugin, MATCHER)
 
-        #get the builder file path
+        # get the builder file path
         self.builder_file = rb.find_plugin_file(plugin, DIALOG_BUILDER_FILE)
 
-        #queue for requests
+        # queue for requests
         self.queue = []
 
-    def destroy(self, plugin, config):
+    def destroy(self, plugin):
         '''
         Free all the resources that were allocated on the extension creation.
         '''
-        super(Extension, self).destroy(plugin, config)
+        super(Extension, self).destroy(plugin)
 
         del self.db
         del self.shell
@@ -198,10 +198,10 @@ class Extension(LastFMExtension):
         '''
         super(Extension, self).disconnect_signals(plugin)
 
-        #disconnect signal
+        # disconnect signal
         self.action_fingerprint.disconnect(self.fp_id)
 
-        #delete variables
+        # delete variables
         del self.fp_id
 
     def destroy_actions(self, plugin):
@@ -212,11 +212,11 @@ class Extension(LastFMExtension):
         '''
         super(Extension, self).destroy_actions(plugin)
 
-        #remove and destroy the action group
+        # remove and destroy the action group
         plugin.uim.remove_action_group(self.finger_action_group)
         del self.finger_action_group
 
-        #delete action
+        # delete action
         del self.action_fingerprint
 
     def fingerprint_song(self, _):
@@ -253,16 +253,16 @@ class Extension(LastFMExtension):
         It shows a Dialog to indicate the user to wait, and executes the
         fingerprinting proccess asynchronously.
         '''
-        #show the fingerprinter dialog
+        # show the fingerprinter dialog
         ui = self._show_dialog(entry)
 
-        #get artist, album, track and path    
+        # get artist, album, track and path
         path = unquote(urlparse(entry.get_playback_uri()).path)
         artist = entry.get_string(RB.RhythmDBPropType.ARTIST)
         album = entry.get_string(RB.RhythmDBPropType.ALBUM)
         title = entry.get_string(RB.RhythmDBPropType.TITLE)
 
-        #fingerprint and match the entry asynchronously
+        # fingerprint and match the entry asynchronously
         async(self._match, self._append_options, entry, *ui)(self.network,
             path, artist, album, title)
 
@@ -271,21 +271,21 @@ class Extension(LastFMExtension):
         Shows a wait dialog with the entry title and artist in the title.
         This dialog is used to show the matching options after they are fetched.
         '''
-        #create a new builder over the builder_file
+        # create a new builder over the builder_file
         builder = Gtk.Builder()
         builder.add_from_file(self.builder_file)
 
-        #connect signals
+        # connect signals
         builder.connect_signals(self)
 
-        #show the dialog
+        # show the dialog
         dialog = builder.get_object(DIALOG_NAME)
         dialog.set_title('Matches for %s - %s' %
 		                    (entry.get_string(RB.RhythmDBPropType.ARTIST),
 		                      entry.get_string(RB.RhythmDBPropType.TITLE)))
         dialog.present()
 
-        #get the status box and the box
+        # get the status box and the box
         main_box = builder.get_object(BOX)
         status_box = builder.get_object(STATUS_BOX)
         action_save = builder.get_object(ACTION_SAVE)
@@ -299,7 +299,7 @@ class Extension(LastFMExtension):
         pylast to retrieve the tracks info, which is finally returned as a list
         of Track instances.
         '''
-        #match the song    
+        # match the song
         try:
             fpid = check_output(
                         [self.matcher_path, path, artist, album, title])
@@ -307,7 +307,7 @@ class Extension(LastFMExtension):
             result = network.get_tracks_by_fpid(fpid)
 
         except CalledProcessError as error:
-            #in the case the fingerprinter fails, raise an exception 
+            # in the case the fingerprinter fails, raise an exception
             raise Exception(error.output)
 
         return result
@@ -318,17 +318,17 @@ class Extension(LastFMExtension):
         This method appends toggles buttons to the dialog, with the info of the
         matched tracks and connects the signal to save the selected option.
         '''
-        #box which will contain the toggles   
+        # box which will contain the toggles
         vbox = Gtk.VBox()
 
-        #if there where actual results
+        # if there where actual results
         if type(result) is list and len(result) > 0:
-            #options list
+            # options list
             options = []
 
-            #for each option
+            # for each option
             for track in result:
-                #append the option and make sure they are all in the same group
+                # append the option and make sure they are all in the same group
                 label = '%d%%: %s' % (math.ceil(track.rank * 100), str(track))
 
                 if not options:
@@ -342,7 +342,7 @@ class Extension(LastFMExtension):
                 toggle.set_mode(False)
                 vbox.pack_start(toggle, True, True, 0)
 
-            #also, add a checkbox to ask if fetch extra info
+            # also, add a checkbox to ask if fetch extra info
             check_extra = Gtk.CheckButton('Fetch extra info?')
             check_extra.set_tooltip_text('Fetch track playcount, rating, '
                                           + 'genre, album name, track number '
@@ -350,15 +350,15 @@ class Extension(LastFMExtension):
 
             vbox.pack_end(check_extra, True, True, 0)
 
-            #connect and activate the save action
+            # connect and activate the save action
             action_save.connect('activate', self._save_selected, entry, result,
                                  main_box.get_parent(), options, check_extra)
             idle_add(action_save.set_sensitive, True)
 
-        #if there weren't valid results
+        # if there weren't valid results
         else:
-            #if we catched and exception show the error, otherwise, indicate 
-            #that there weren't matches
+            # if we catched and exception show the error, otherwise, indicate
+            # that there weren't matches
             if type(result) is Exception:
                 label = Gtk.Label(result.message)
             else:
@@ -366,10 +366,10 @@ class Extension(LastFMExtension):
 
             vbox.pack_start(label, True, True, 0)
 
-        #show the box   
+        # show the box
         vbox.show_all()
 
-        #delete the old box and append the new
+        # delete the old box and append the new
         idle_add(status_box.destroy)
         idle_add(main_box.pack_start, vbox, True, True, 0)
 
@@ -399,7 +399,7 @@ class Extension(LastFMExtension):
                                           track.get_title().encode('utf8'))
                 self.db.commit()
 
-                #asynchronously retrieve extra data
+                # asynchronously retrieve extra data
                 if extra.get_active():
                     playcount = entry.get_ulong(RB.RhythmDBPropType.PLAY_COUNT)
                     async(self._fetch_extra_info,
@@ -422,45 +422,45 @@ class Extension(LastFMExtension):
             - Track Number
             - Track Genre
         '''
-        #list for extra info with it's db keys
+        # list for extra info with it's db keys
         info = []
 
-        #play count - only add if it's bigger than the old playcount
+        # play count - only add if it's bigger than the old playcount
         new_playcount = track.get_playcount(True)
 
         if new_playcount > old_playcount:
             info.append((RB.RhythmDBPropType.PLAY_COUNT, new_playcount))
 
-        #genre
+        # genre
         genre = self.genre_guesser.guess(track)
 
         if genre:
             info.append((RB.RhythmDBPropType.GENRE, genre.encode('utf-8')))
 
-        #loved track (rating 5 stars)           
+        # loved track (rating 5 stars)
         if track.is_loved():
             info.append((RB.RhythmDBPropType.RATING, 5))
 
-        #album data
+        # album data
         album = track.get_album()
 
         if album:
-            #album name
+            # album name
             info.append((RB.RhythmDBPropType.ALBUM,
                           album.get_name().encode('utf-8')))
 
-            #release date (year)
+            # release date (year)
             date = album.get_release_date()
 
             if date.strip() != '':
                 info.append((RB.RhythmDBPropType.DATE,
                               int(date.split()[2][:-1]) * DAYS))
 
-            #album artist
+            # album artist
             info.append((RB.RhythmDBPropType.ALBUM_ARTIST,
                           album.get_artist().get_name().encode('utf-8')))
 
-            #track number
+            # track number
             tracks = album.get_tracks()
 
             for track_number in range(0, len(tracks)):

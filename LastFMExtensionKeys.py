@@ -16,9 +16,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA.
 
-SETTINGS = 'extensions.conf'
-PATH = 'org.gnome.rhythmbox.plugins.lastfm_extension'
+SETTINGS = 'settings.conf'
+CONNECTION_SECTION = 'LastFMConnection'
 SESSION = 'session-key'
 CONNECTED = 'connected'
+ENABLED = 'enabled'
 API_KEY = '4353df7956417de92999306424bc9395'
 API_SECRET = 'f81efe99d6eb744e691aa6982f01c9a1'

@@ -21,7 +21,7 @@ from gi.repository import RB
 
 from LastFMExtensionUtils import asynchronous_call as async, idle_add
 
-#name and description
+# name and description
 NAME = "LastFMPlaycountSync"
 DESCRIPTION = "Sync your tracks playcount with Last.FM!"
 
@@ -31,11 +31,11 @@ class Extension(LastFMExtensionWithPlayer):
     one saved on LastFM servers.
     '''
 
-    def __init__(self, plugin, config):
+    def __init__(self, plugin, settings):
         '''
         Initializes the extension.
         '''
-        super(Extension, self).__init__(plugin, config)
+        super(Extension, self).__init__(plugin, settings)
 
         self.order = 2
 
@@ -58,17 +58,17 @@ class Extension(LastFMExtensionWithPlayer):
         Callback for the playing-changed signal. Initiates the process to
         retrieve the playcount from LastFM.
         '''
-        #check if the player is playing a song
+        # check if the player is playing a song
         if not playing:
             return
 
-        #get the track
+        # get the track
         entry, track = self.get_current_track()
 
         if not entry or not track:
             return
 
-        #obtenemos la playcount de lastfm asincronamente
+        # obtenemos la playcount de lastfm asincronamente
         async(track.get_playcount, self._update_playcount, entry)(True)
 
     def _update_playcount(self, playcount, entry):
@@ -77,10 +77,10 @@ class Extension(LastFMExtensionWithPlayer):
         The playcount is updated ONLY if the one retreived from LastFM is
         HIGHER than the one stored locally.
         '''
-        #get current playcount               
+        # get current playcount
         old_playcount = entry.get_ulong(RB.RhythmDBPropType.PLAY_COUNT)
 
-        #update the playcount if it's valid and is higher than the local one
+        # update the playcount if it's valid and is higher than the local one
         if playcount and type(playcount) is int and old_playcount < playcount:
             def set_playcount(entry, playcount):
                 self.db.entry_set(entry, RB.RhythmDBPropType.PLAY_COUNT,

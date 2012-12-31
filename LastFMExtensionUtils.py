@@ -114,23 +114,26 @@ class Settings(SafeConfigParser, object):
             self.write(conf_file)
 
     def get_section(self, section):
+        if not self.has_section(section):
+            self.add_section(section)
+
         return SettingsSection(self, section)
 
-    def connect(self, section, option, callback):
+    def connect(self, section, option, callback, *data):
         if section not in self._observers:
             self._observers[section] = {}
 
         if option not in self._observers[section]:
             self._observers[section][option] = []
 
-        self._observers[section][option].append(callback)
+        self._observers[section][option].append((callback, data))
 
     def set(self, section, option, value=None):
         SafeConfigParser.set(self, section, option, str(value))
 
         if section in self._observers and option in self._observers[section]:
-            for callback in self._observers[section][option]:
-                callback(value)
+            for callback, data in self._observers[section][option]:
+                callback(value, *data)
 
 class SettingsSection(object):
     def __init__(self, settings, section_name):
@@ -143,7 +146,8 @@ class SettingsSection(object):
         def call_with_section(*args, **kwargs):
             return getattr(self._settings, attr)(self._section, *args, **kwargs)
 
-        if attr.startswith('get') or attr == 'set' or attr == 'connect':
+        if attr.startswith('get') or attr == 'has_option' or attr == 'set' or\
+            attr == 'connect':
             return call_with_section
 
         super(SettingsSection, self).__getattr__(self, attr)

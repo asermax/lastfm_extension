@@ -46,16 +46,18 @@ class ConfigDialog(GObject.Object, PeasGtk.Configurable):
 
     def __init__(self):
         GObject.Object.__init__(self)
-        self.settings = Gio.Settings(Keys.PATH)
 
     def do_create_configure_widget(self):
         from lastfm_extension import LastFMExtensionBag
+
+        self.settings = LastFMExtensionBag.get_instance().settings.get_section(
+            Keys.CONNECTION_SECTION)
 
         # create the ui with a builder
         builder = Gtk.Builder()
         builder.add_from_file(rb.find_plugin_file(self, DIALOG_FILE))
 
-        if self.settings[Keys.CONNECTED]:
+        if self.settings.getboolean(Keys.CONNECTED):
             label_text = 'Logged'
             button_label = 'Logout'
             button_callback = self._logout
@@ -78,6 +80,7 @@ class ConfigDialog(GObject.Object, PeasGtk.Configurable):
 
         # add each extension's widget
         extensions = LastFMExtensionBag.get_instance().extensions.values()
+
         for extension in sorted(extensions, key=lambda ext: ext.order,
                                 reverse=True):
             extensions_box.pack_end(extension.get_configuration_widget(), False,
@@ -103,7 +106,7 @@ class ConfigDialog(GObject.Object, PeasGtk.Configurable):
         self._b_id = button.connect('clicked', self._connect, label,
                                      skey_generator, url)
 
-        #abrimos la pagina de confirmacion
+        # abrimos la pagina de confirmacion
         webbrowser.open_new(url)
 
     def _connect(self, button, label, skey_generator, url):
@@ -112,9 +115,9 @@ class ConfigDialog(GObject.Object, PeasGtk.Configurable):
 
         try:
             # try to get the session key and get connected
-            self.settings[Keys.SESSION] = \
-                                skey_generator.get_web_auth_session_key(url)
-            self.settings[Keys.CONNECTED] = True
+            self.settings.set(Keys.SESSION,
+                skey_generator.get_web_auth_session_key(url))
+            self.settings.set(Keys.CONNECTED, True)
 
             # reconfigure the ui
             label.set_text('Logged')
@@ -123,9 +126,9 @@ class ConfigDialog(GObject.Object, PeasGtk.Configurable):
             # connect the new signal
             self._b_id = button.connect('clicked', self._logout, label)
 
-        except:
+        except Exception as e:
             # reconfigure the ui to indicate the failure
-            label.set_text('Connection failed')
+            label.set_text('Connection failed:\n%s' % e.message)
             button.set_label('Login')
 
             # connect the new signal
@@ -133,7 +136,7 @@ class ConfigDialog(GObject.Object, PeasGtk.Configurable):
 
     def _logout(self, button, label):
         # change the state
-        self.settings[Keys.CONNECTED] = False
+        self.settings.set(Keys.CONNECTED, False)
 
         # reconfigure ui
         label.set_text('Not Logged')

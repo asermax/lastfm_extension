@@ -18,9 +18,11 @@
 
 import pylast
 from abc import abstractproperty
-from gi.repository import GObject, Gio, Gtk, Peas, RB
+from gi.repository import GObject
+from gi.repository import Gtk
+from gi.repository import Peas
+from gi.repository import RB
 
-from ConfigParser import SafeConfigParser
 from glob import iglob
 import os
 import imp
@@ -31,35 +33,19 @@ import LastFMExtensionUtils
 from LastFMExtensionGui import ConfigDialog
 
 import gettext
+from LastFMExtensionKeys import ENABLED
 
 gettext.install('rhythmbox', RB.locale_dir(), unicode=True)
 
-ui_str = """
-<ui>
-  <toolbar name="ToolBar">
-    <placeholder name="PluginPlaceholder">
-      <toolitem name="Loves" action="LoveTrack"/>
-      <toolitem name="Ban" action="BanTrack"/>
-    </placeholder>
-  </toolbar>
-</ui>
-"""
-
 LASTFM_ICON = 'img/as.png'
-LOVE_ICON = 'img/love.png'
-BAN_ICON = 'img/ban.png'
 
-# TODO: move all the configuration to the extensions configuration file
 
 class LastFMExtension(GObject.Object):
     '''
     Base class for all the extensions managed by this plugin.
     '''
 
-    # properties
-    enabled = GObject.property(type=bool, default=False)
-
-    def __init__(self, plugin, config):
+    def __init__(self, plugin, settings):
         '''
         By default, all extension are initialized allocating a 'settings'
         attribute that points to a Gio.Settings object binded to the global
@@ -69,36 +55,27 @@ class LastFMExtension(GObject.Object):
         super(LastFMExtension, self).__init__()
 
         self.order = 0
-        self.settings = plugin.settings
+        self.settings = settings.get_section(self.extension_name)
         self.initialised = False
 
         # connect signals
-        self.conn_id = self.settings.connect('changed::%s' % Keys.CONNECTED,
+        settings.connect(Keys.CONNECTION_SECTION, Keys.CONNECTED,
             self.connection_changed, plugin)
-        self.enab_id = self.connect('notify::enabled',
-            self.on_enabled_notify, plugin)
+        self.settings.connect('enabled', self.on_enabled_notify, plugin)
 
-        # load the extension configuration
-        self.load_configuration(config)
+        # try to enable
+        self.on_enabled_notify(self.enabled, plugin)
 
-    def destroy(self, plugin, config):
+    def destroy(self, plugin):
         '''
         This method should be called ALWAYS before the deletion of the object or
         the deactivation of the plugin. It makes sure that all the resources
         this extensions has taken up are freed.
         '''
-        # save the plugin configuration
-        self.save_configuration(config)
-
         if self.initialised:
             self.dismantle(plugin)
 
-        self.settings.disconnect(self.conn_id)
-        self.disconnect(self.enab_id)
-
         del self.settings
-        del self.conn_id
-        del self.enab_id
 
     @abstractproperty
     def extension_name(self):
@@ -122,34 +99,24 @@ class LastFMExtension(GObject.Object):
         '''
         pass
 
-    def load_configuration(self, config):
-        '''
-        Loads the plugin configuration from a ConfigParser or sets the default
-        configuration if the section for the plugin doesn't exist.
-        '''
-        if self.extension_name in config.sections():
-            self.enabled = config.getboolean(self.extension_name, 'enabled')
-        else:
-            self.enabled = False
+    @property
+    def enabled(self):
+        ''' Indicates if the extension is enabled. '''
+        return self.settings.getboolean(Keys.ENABLED)
 
-    def save_configuration(self, config):
-        '''
-        Saves the plugin configuration to a ConfigParser.
-        '''
-        if self.extension_name not in config.sections():
-            config.add_section(self.extension_name)
+    @enabled.setter
+    def enabled(self, enable):
+        ''' Allows to enabled/disable the extension. '''
+        self.settings.set(Keys.ENABLED, enable)
 
-        config.set(self.extension_name, 'enabled',
-            'yes' if self.enabled else 'no')
-
-    def connection_changed(self, settings, key, plugin):
+    def connection_changed(self, connected, plugin):
         '''
         Callback for changes in the connection of the plugin. It ensures that
         the extension is reenabled (if enabled in the first place) when a
         connection is made and to dismantle the plugin (if initialized) when
         the connection is closed.
         '''
-        if not plugin.connected:
+        if not connected:
             if self.initialised:
                 self.dismantle(plugin)
 
@@ -200,7 +167,7 @@ class LastFMExtension(GObject.Object):
         Creates the plugin ui within the Rhythmbox application.
         This method is always called when the extension is initialized
         '''
-        if self.ui_str != None:
+        if self.ui_str:
             self.ui_id = plugin.uim.add_ui_from_string(self.ui_str)
 
     def connect_signals(self, plugin):
@@ -223,7 +190,7 @@ class LastFMExtension(GObject.Object):
         Destroys the extension's ui whithin the Rhythmbox application.
         This method is always called when the extension is dismantled.
         '''
-        if self.ui_str != None:
+        if self.ui_str:
             plugin.uim.remove_ui(self.ui_id)
             del self.ui_id
 
@@ -253,14 +220,12 @@ class LastFMExtension(GObject.Object):
 
         return widget
 
-    def on_enabled_notify(self, *args):
+    def on_enabled_notify(self, enabled, plugin):
         '''
         Callback for when a setting is changed. The default implementation makes
         sure to initialise or dismantle the extension acordingly.
         '''
-        plugin = args[-1]
-
-        if self.enabled:
+        if enabled:
             if not self.initialised and plugin.connected:
                 self.initialise(plugin)
 
@@ -286,13 +251,13 @@ class LastFMExtensionWithPlayer(LastFMExtension):
 
         super(LastFMExtensionWithPlayer, self).__init__(plugin, config)
 
-    def destroy(self, plugin, config):
+    def destroy(self, plugin):
         '''
         This method should be called ALWAYS before the deletion of the object
         or the deactivation of the plugin. It makes sure that all the resources
         this extension has taken up are freed.
         '''
-        super(LastFMExtensionWithPlayer, self).destroy(plugin, config)
+        super(LastFMExtensionWithPlayer, self).destroy(plugin)
 
         del self.player
         del self.db
@@ -357,34 +322,18 @@ class LastFMExtensionBag(object):
 
     # extensions directory
     EXT_DIR = 'extensions'
-    # extensions configuration file
-    EXT_CONFIG = 'extensions.conf'
 
-    def __init__(self, plugin):
+    def __init__(self, plugin, settings):
         '''
         Initialise the bag, dinamically generating all the plugins.
         '''
+        self.settings = settings
         self.extensions = {}
         extensions_class = self.discover_extensions(plugin)
 
-        # generate config config_parser
-        config_file = os.path.join(plugin.plugin_info.get_data_dir(),
-             self.EXT_CONFIG)
-
-        config_parser = SafeConfigParser()
-        config_parser.read(config_file)
-
-        # NOTE ABOUT THE CONFIG:
-        # I should probably port all the configuration to this file.
-        # It's way easier to manipulate the settings from here, and since now
-        # each extension is responsible to return it's configuration widget,
-        # there is no need to connect their activation or any other setting
-        # modification through Gio (except maybe the connection, but I can
-        # simulate that one someway else).
-
         # load all the extensions and configure them
         for extension_class in extensions_class:
-            extension = extension_class(plugin, config_parser)
+            extension = extension_class(plugin, settings)
 
             self.extensions[extension.extension_name] = extension
 
@@ -393,15 +342,11 @@ class LastFMExtensionBag(object):
         Destroy this Bag. This method MUST be called (if you want a clean
         shutdown).
         '''
-        config_parser = SafeConfigParser()
-
         # destroy all the extensions
         for extension in self.extensions.itervalues():
-            extension.destroy(plugin, config_parser)
+            extension.destroy(plugin)
 
-        with file(os.path.join(plugin.plugin_info.get_data_dir(),
-            self.EXT_CONFIG), 'w') as config_file:
-            config_parser.write(config_file)
+        self.settings.save()
 
     def discover_extensions(self, plugin):
         extensions = []
@@ -431,12 +376,12 @@ class LastFMExtensionBag(object):
         return extensions
 
     @classmethod
-    def initialise_instance(cls, plugin):
+    def initialise_instance(cls, plugin, settings):
         '''
         Initializes the shared Bag.
         '''
         if not cls.instance:
-            cls.instance = LastFMExtensionBag(plugin)
+            cls.instance = LastFMExtensionBag(plugin, settings)
 
     @classmethod
     def destroy_instance(cls, plugin):
@@ -459,31 +404,31 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
 
     def __init__(self):
         GObject.Object.__init__(self)
-        self.settings = Gio.Settings.new(Keys.PATH)
 
     @property
     def connected(self):
-        return self.settings['connected']
-
-    @connected.setter
-    def connected(self, connect):
-        self.settings['connected'] = connect
-
+        return self.settings.getboolean(Keys.CONNECTED)
 
     def do_activate(self):
-        # inicializamos el modulo de notificacion
+        # initialise the utils module
         LastFMExtensionUtils.init(rb.find_plugin_file(self, LASTFM_ICON))
 
-        # conectamos la señal para conectar o desconectar
-        self.settings.connect('changed::%s' % Keys.CONNECTED,
-                                self.conection_changed)
+        # create the settings for the plugin
+        settings = LastFMExtensionUtils.Settings(self)
+
+        # get the settings section for the connection
+        self.settings = settings.get_section(Keys.CONNECTION_SECTION)
+
+        # connect a signal to the connected property
+        self.settings.connect(Keys.CONNECTED, self.conection_changed)
 
         # asign variables and initialise the network and extensions
-        self.conection_changed(self.settings, Keys.CONNECTED)
+        self.conection_changed(self.connected)
 
+        # initialise the extensions bag
         self.shell = self.object
         self.uim = self.object.props.ui_manager
-        LastFMExtensionBag.initialise_instance(self)
+        LastFMExtensionBag.initialise_instance(self, settings)
 
     def do_deactivate(self):
         # borramos la network si existe
@@ -496,11 +441,11 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
         del self.shell
         del self.uim
 
-    def conection_changed(self, settings, key):
-        if settings[key]:
+    def conection_changed(self, connected):
+        if connected:
             self.network = pylast.LastFMNetwork(
                 api_key=Keys.API_KEY,
                 api_secret=Keys.API_SECRET,
-                session_key=settings[Keys.SESSION])
+                session_key=self.settings.get(Keys.SESSION))
         else:
             self.network = None
