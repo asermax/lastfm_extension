@@ -16,7 +16,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA.
 
-from gi.repository import Gtk, Gio, GObject, PeasGtk
+from gi.repository import Gtk
+from gi.repository import GObject
+from gi.repository import PeasGtk
 import LastFMExtensionKeys as Keys
 import rb
 import pylast, webbrowser
@@ -26,6 +28,7 @@ DIALOG = 'boxPrincipal'
 LOGIN_LABEL = 'labelLogin'
 LOGIN_BUTTON = 'buttonLogin'
 EXTENSIONS_BOX = 'extensions_box'
+
 
 '''
 Función auxiliar para mostrar mensajes de error con un dialog.
