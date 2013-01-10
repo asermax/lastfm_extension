@@ -56,16 +56,9 @@ FINGERPRINT=${FINGERPRINT:=false}
 ########################## START INSTALLATION ################################
 
 #define constants
-GLIB_SCHEME="org.gnome.rhythmbox.plugins.lastfm_extension.gschema.xml"
-GLIB_DIR="/usr/share/glib-2.0/schemas/"
 SCRIPT_NAME=`basename "$0"`
 SCRIPT_PATH=${0%`basename "$0"`}
 MATCHER="matcher.py"
-
-#install the glib schema
-echo "Installing glib schemas (admin password needed):"
-sudo cp "${SCRIPT_PATH}${GLIB_SCHEME}" "$GLIB_DIR"
-sudo glib-compile-schemas "$GLIB_DIR"
 
 #install the plugin; the install path depends on the install mode
 if [[ $LOCAL == true ]]
@@ -85,7 +78,7 @@ then
     #remove the install script from the dir (not needed)
     rm "${PLUGIN_PATH}${SCRIPT_NAME}"
 else
-    echo "Installing plugin globally"
+    echo "Installing plugin globally(admin password needed)"
     PLUGIN_PATH="/usr/lib/rhythmbox/plugins/lastfm_extension/"
     
     #build the dirs
