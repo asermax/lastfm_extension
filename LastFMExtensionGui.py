@@ -24,10 +24,9 @@ import rb
 import pylast, webbrowser
 
 DIALOG_FILE = 'lastfmExtensionConfigDialog.glade'
-DIALOG = 'boxPrincipal'
-LOGIN_LABEL = 'labelLogin'
-LOGIN_BUTTON = 'buttonLogin'
-EXTENSIONS_BOX = 'extensions_box'
+DIALOG = 'config_notebook'
+LOGIN_LABEL = 'login_label'
+LOGIN_BUTTON = 'login_button'
 
 
 '''
@@ -60,6 +59,8 @@ class ConfigDialog(GObject.Object, PeasGtk.Configurable):
         builder = Gtk.Builder()
         builder.add_from_file(rb.find_plugin_file(self, DIALOG_FILE))
 
+        dialog = builder.get_object(DIALOG)
+
         if self.settings.getboolean(Keys.CONNECTED):
             label_text = 'Logged'
             button_label = 'Logout'
@@ -73,7 +74,6 @@ class ConfigDialog(GObject.Object, PeasGtk.Configurable):
         # get the components to modify
         label = builder.get_object(LOGIN_LABEL)
         button = builder.get_object(LOGIN_BUTTON)
-        extensions_box = builder.get_object(EXTENSIONS_BOX)
 
         # get the ui ready
         label.set_text(label_text)
@@ -86,10 +86,31 @@ class ConfigDialog(GObject.Object, PeasGtk.Configurable):
 
         for extension in sorted(extensions, key=lambda ext: ext.order,
                                 reverse=True):
-            extensions_box.pack_end(extension.get_configuration_widget(), False,
-                                   True, 0)
+            self._add_extension_widget(dialog,
+                *extension.get_configuration_widget())
+            # extensions_box.pack_end(extension.get_configuration_widget(), False,
+            #                       True, 0)
 
-        return builder.get_object(DIALOG)
+        return dialog
+
+    def _add_extension_widget(self, dialog, section, widget):
+        extension_box = None
+
+        for page_num in range(0, dialog.get_n_pages()):
+            page = dialog.get_nth_page(page_num)
+
+            if dialog.get_tab_label_text(page) == section:
+                extension_box = page
+
+        if not extension_box:
+            extension_box = Gtk.Box(visible=True, can_focus=False,
+                border_width=10, orientation=Gtk.Orientation.VERTICAL,
+                spacing=5)
+            label = Gtk.Label(visible=True, label=section)
+
+            dialog.append_page(extension_box, label)
+
+        extension_box.pack_end(widget, False, True, 0)
 
     def _toggle(self, checkbutton, key):
         self.settings[key] = checkbutton.get_active()

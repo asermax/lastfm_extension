@@ -33,8 +33,6 @@ import LastFMExtensionUtils
 from LastFMExtensionGui import ConfigDialog
 
 import gettext
-from LastFMExtensionKeys import ENABLED
-from ninja_ide.gui.menus.lib.aboutdialog import keys_desc
 
 gettext.install('rhythmbox', RB.locale_dir(), unicode=True)
 
@@ -222,7 +220,7 @@ class LastFMExtension(GObject.Object):
         widget.connect('toggled', toggled_callback)
         widget.set_tooltip_text(self.extension_desc)
 
-        return widget
+        return 'General', widget
 
     def on_enabled_notify(self, enabled, plugin):
         '''

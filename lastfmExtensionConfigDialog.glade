@@ -1,19 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkBox" id="boxPrincipal">
+  <object class="GtkNotebook" id="config_notebook">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="border_width">10</property>
-    <property name="orientation">vertical</property>
+    <property name="can_focus">True</property>
     <child>
-      <object class="GtkBox" id="boxLogin">
+      <object class="GtkBox" id="general_box">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="border_width">10</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">5</property>
         <child>
-          <object class="GtkLabel" id="labelLogin">
+          <object class="GtkBox" id="login_box">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <child>
+              <object class="GtkLabel" id="login_label">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="login_button">
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="margin_left">15</property>
+                <property name="use_action_appearance">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -21,43 +48,16 @@
             <property name="position">0</property>
           </packing>
         </child>
-        <child>
-          <object class="GtkButton" id="buttonLogin">
-            <property name="use_action_appearance">False</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
-            <property name="margin_left">15</property>
-            <property name="use_action_appearance">False</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
       </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">0</property>
-      </packing>
     </child>
-    <child>
-      <object class="GtkBox" id="extensions_box">
+    <child type="tab">
+      <object class="GtkLabel" id="general_label">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">5</property>
-        <child>
-          <placeholder/>
-        </child>
+        <property name="label" translatable="yes">General</property>
       </object>
       <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="padding">5</property>
-        <property name="position">1</property>
+        <property name="tab_fill">False</property>
       </packing>
     </child>
   </object>
