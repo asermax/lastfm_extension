@@ -110,6 +110,13 @@ class Settings(SafeConfigParser, object):
         self._observers = {}
 
     def save(self):
+        # create the directory if it doesn't exist
+        conf_dir = os.path.dirname(self._config_file)
+
+        if not os.path.exists(conf_dir):
+            os.makedirs(conf_dir)
+
+        # write down the config file
         with open(self._config_file, 'w+') as conf_file:
             self.write(conf_file)
 
@@ -131,13 +138,13 @@ class Settings(SafeConfigParser, object):
     def set(self, section, option, value=None):
         SafeConfigParser.set(self, section, option, str(value))
 
-		# comunicate the observers about the change
+        # comunicate the observers about the change
         if section in self._observers and option in self._observers[section]:
             for callback, data in self._observers[section][option]:
                 callback(value, *data)
 
-		# save the settings on the disk
-		self.save()
+        # save the settings on the disk
+        self.save()
 
 class SettingsSection(object):
     def __init__(self, settings, section_name):
