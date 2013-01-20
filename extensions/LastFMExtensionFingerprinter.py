@@ -28,6 +28,8 @@ from lastfm_extension import LastFMExtension
 from LastFMExtensionGenreGuesser import LastFMGenreGuesser
 from LastFMExtensionUtils import asynchronous_call as async, idle_add
 import lastfm_extension
+import os
+import LastFMExtensionKeys
 
 # try to import lastfp
 class LastFMFingerprinterException(Exception):
@@ -301,8 +303,12 @@ class Extension(LastFMExtension):
         '''
         # match the song
         try:
+            environ = os.environ.copy()
+            environ['PYTHONPATH'] = os.path.dirname(
+                LastFMExtensionKeys.__file__)
+
             fpid = check_output(
-                        [self.matcher_path, path, artist, album, title])
+                [self.matcher_path, path, artist, album, title], env=environ)
 
             result = network.get_tracks_by_fpid(fpid)
 
