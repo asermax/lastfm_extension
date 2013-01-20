@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA.
 # Utilidades para el plugin
-from gi.repository import Gdk
+from gi.repository import Gdk, RB
 from gi.repository import GdkPixbuf
 from gi.repository import GLib
 from gi.repository import Notify
@@ -102,8 +102,7 @@ class Settings(SafeConfigParser, object):
         super(Settings, self).__init__()
 
         # initialise the config parser
-        self._config_file = os.path.join(os.environ['HOME'],
-             LastFMExtensionKeys.SETTINGS)
+        self._config_file = RB.find_user_data_file(LastFMExtensionKeys.SETTINGS)
         self.read(self._config_file)
 
         # dictionary of observers for settings changes
