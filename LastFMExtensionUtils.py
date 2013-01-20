@@ -102,7 +102,7 @@ class Settings(SafeConfigParser, object):
         super(Settings, self).__init__()
 
         # initialise the config parser
-        self._config_file = os.path.join(plugin.plugin_info.get_data_dir(),
+        self._config_file = os.path.join(os.environ['HOME'],
              LastFMExtensionKeys.SETTINGS)
         self.read(self._config_file)
 
@@ -110,7 +110,7 @@ class Settings(SafeConfigParser, object):
         self._observers = {}
 
     def save(self):
-        with open(self._config_file, 'w') as conf_file:
+        with open(self._config_file, 'w+') as conf_file:
             self.write(conf_file)
 
     def get_section(self, section):

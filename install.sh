@@ -80,9 +80,11 @@ then
 else
     echo "Installing plugin globally(admin password needed)"
     PLUGIN_PATH="/usr/lib/rhythmbox/plugins/lastfm_extension/"
+    CONF_DIR="/home/${USER}/.local/share/rhythmbox/plugins/lastfm_extension/"
     
     #build the dirs
     sudo mkdir -p $PLUGIN_PATH
+    mkdir -p "$CONF_DIR"
 
     #copy the files
     sudo cp -r "${SCRIPT_PATH}"* "$PLUGIN_PATH"
@@ -91,7 +93,7 @@ else
     sudo chmod +x "${PLUGIN_PATH}${MATCHER}"
 
     #remove the install script from the dir (not needed)
-    sudo rm "${PLUGIN_PATH}${SCRIPT_NAME}"
+    sudo rm "${PLUGIN_PATH}${SCRIPT_NAME}"        
 fi
 
 #try to install pylastfp
