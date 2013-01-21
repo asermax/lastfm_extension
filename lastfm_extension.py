@@ -220,7 +220,7 @@ class LastFMExtension(GObject.Object):
         widget.connect('toggled', toggled_callback)
         widget.set_tooltip_text(self.extension_desc)
 
-        return 'General', widget
+        return _('General'), widget
 
     def on_enabled_notify(self, enabled, plugin):
         '''
