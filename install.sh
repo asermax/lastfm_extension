@@ -79,19 +79,37 @@ then
     rm "${PLUGIN_PATH}${SCRIPT_NAME}"
 else
     echo "Installing plugin globally(admin password needed)"
-    PLUGIN_PATH="/usr/lib/rhythmbox/plugins/lastfm_extension/"
+    LIB_PATH="/usr/lib/rhythmbox/plugins/lastfm_extension/"
+    SHARE_PATH="/usr/share/rhythmbox/plugins/lastfm_extension/"
     
     #build the dirs
-    sudo mkdir -p $PLUGIN_PATH
+    sudo mkdir -p $LIB_PATH
+    sudo mkdir -p $SHARE_PATH
 
     #copy the files
-    sudo cp -r "${SCRIPT_PATH}"* "$PLUGIN_PATH"
+    #lib files
+    declare -a libfiles=("lastfm_extension.plugin" "lastfm_extension.py" 
+                         "LastFMExtensionGenreGuesser.py" 
+                         "LastFMExtensionKeys.py" "LastFMExtensionUtils.py"
+                         "LastFMExtensionGui.py" "pylast.py")
+    
+    for item in "${libfiles[@]}"
+    do
+        sudo cp -r "${SCRIPT_PATH}$item" "$LIB_PATH"
+    done
+    
+    #share files
+    declare -a sharefiles=("extensions" "img" "genres.txt" "matcher.py" 
+                           "lastfmExtensionConfigDialog.glade"
+                           "lastfmExtensionFingerprintDialog.glade")
+    
+    for item in "${sharefiles[@]}"
+    do
+        sudo cp -r "${SCRIPT_PATH}$item" "$SHARE_PATH"
+    done
     
     #make the matcher executable
-    sudo chmod +x "${PLUGIN_PATH}${MATCHER}"
-
-    #remove the install script from the dir (not needed)
-    sudo rm "${PLUGIN_PATH}${SCRIPT_NAME}"        
+    sudo chmod +x "${SHARE_PATH}${MATCHER}"      
 fi
 
 #try to install pylastfp
