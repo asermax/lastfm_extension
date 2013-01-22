@@ -215,7 +215,7 @@ class LastFMExtension(GObject.Object):
         def toggled_callback(checkbox):
             self.enabled = checkbox.get_active()
 
-        widget = Gtk.CheckButton("Activate %s " % self)
+        widget = Gtk.CheckButton(_("Activate %s ") % self)
         widget.set_active(self.enabled)
         widget.connect('toggled', toggled_callback)
         widget.set_tooltip_text(self.extension_desc)
