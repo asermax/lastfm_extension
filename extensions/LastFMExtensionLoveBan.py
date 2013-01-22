@@ -23,11 +23,11 @@ import rb
 
 from LastFMExtensionUtils import asynchronous_call as async, notify, idle_add
 
-#name and description
+# name and description
 NAME = "LastFMLoveBan"
 DESCRIPTION = "Add the Love and Ban buttons to your Toolbar!"
 
-#constants
+# constants
 UI_STR = """
 <ui>
   <toolbar name="ToolBar">
@@ -39,9 +39,13 @@ UI_STR = """
 </ui>
 """
 
-#icon paths
+# icon paths
 LOVE_ICON = 'img/love.png'
 BAN_ICON = 'img/ban.png'
+
+# settings keys
+LOVE_VISIBLE = 'love_visible'
+BAN_VISIBLE = 'ban_visible'
 
 class Extension(LastFMExtensionWithPlayer):
     '''
@@ -69,6 +73,38 @@ class Extension(LastFMExtensionWithPlayer):
         '''
         return UI_STR
 
+    @property
+    def love_visible(self):
+        if not self.settings.has_option(LOVE_VISIBLE):
+            self.love_visible = True
+
+        return self.settings.getboolean(LOVE_VISIBLE)
+
+    @love_visible.setter
+    def love_visible(self, visible):
+        self.settings.set(LOVE_VISIBLE, visible)
+
+        try:
+            self.action_love.set_visible(visible)
+        except:
+            pass
+
+    @property
+    def ban_visible(self):
+        if not self.settings.has_option(BAN_VISIBLE):
+            self.ban_visible = True
+
+        return self.settings.getboolean(BAN_VISIBLE)
+
+    @ban_visible.setter
+    def ban_visible(self, visible):
+        self.settings.set(BAN_VISIBLE, visible)
+
+        try:
+            self.action_ban.set_visible(visible)
+        except:
+            pass
+
     def create_actions(self, plugin):
         '''
         Creates all the extension's related actions and inserts them into the
@@ -77,32 +113,33 @@ class Extension(LastFMExtensionWithPlayer):
         '''
         super(Extension, self).create_actions(plugin)
 
-        #create the action group
+        # create the action group
         self.action_group = Gtk.ActionGroup(self.extension_name)
 
-        #create love action
+        # create love action
         self.action_love = Gtk.Action('LoveTrack', _('_Love'),
-                                       _("Love this track."), None)
+            _("Love this track."), None, visible=self.love_visible)
+
         icon = Gio.FileIcon.new(Gio.File.new_for_path(
-                                      rb.find_plugin_file(plugin,
-                                                           LOVE_ICON)))
+            rb.find_plugin_file(plugin, LOVE_ICON)))
+
         self.action_love.set_gicon(icon)
         self.action_group.add_action(self.action_love)
 
-        #create ban action
+        # create ban action
         self.action_ban = Gtk.Action('BanTrack', _('_Ban'),
-                                _("Ban this track."),
-                                None)
+            _("Ban this track."), None, visible=self.ban_visible)
+
         icon = Gio.FileIcon.new(Gio.File.new_for_path(
-                                       rb.find_plugin_file(plugin,
-                                                            BAN_ICON)))
+            rb.find_plugin_file(plugin, BAN_ICON)))
+
         self.action_ban.set_gicon(icon)
         self.action_group.add_action(self.action_ban)
 
         # enable the buttons depending if there's a song playing
         self.playing_changed()
 
-        #insert the action group to the uim
+        # insert the action group to the uim
         plugin.uim.insert_action_group(self.action_group)
 
     def connect_signals(self, plugin):
@@ -113,10 +150,10 @@ class Extension(LastFMExtensionWithPlayer):
         '''
         super(Extension, self).connect_signals(plugin)
 
-        #signal for loving a track
+        # signal for loving a track
         self.love_id = self.action_love.connect('activate', self._love_track)
 
-        #signal for baning a track
+        # signal for baning a track
         self.ban_id = self.action_ban.connect('activate', self._ban_track)
 
     def disconnect_signals(self, plugin):
@@ -126,11 +163,11 @@ class Extension(LastFMExtensionWithPlayer):
         '''
         super(Extension, self).disconnect_signals(plugin)
 
-        #disconnect signals
+        # disconnect signals
         self.action_love.disconnect(self.love_id)
         self.action_ban.disconnect(self.ban_id)
 
-        #delete variables
+        # delete variables
         del self.love_id
         del self.ban_id
 
@@ -142,13 +179,51 @@ class Extension(LastFMExtensionWithPlayer):
         '''
         super(Extension, self).destroy_actions(plugin)
 
-        #remove and destroy the action group
+        # remove and destroy the action group
         plugin.uim.remove_action_group(self.action_group)
         del self.action_group
 
-        #delete actions
+        # delete actions
         del self.action_love
         del self.action_ban
+
+    def get_configuration_widget(self):
+        # love visible checkbox
+        def love_visible_callback(checkbox):
+            self.love_visible = checkbox.get_active()
+
+        love_checkbox = Gtk.CheckButton(_('Love'), margin_left=25,
+            active=self.love_visible, tooltip_text=_('Show Love button'))
+        love_checkbox.connect('toggled', love_visible_callback)
+
+        # ban visible checkobx
+        def ban_visible_callback(checkbox):
+            self.ban_visible = checkbox.get_active()
+
+        ban_checkbox = Gtk.CheckButton(_('Ban'), active=self.ban_visible,
+            tooltip_text=_('Show Ban button'))
+        ban_checkbox.connect('toggled', ban_visible_callback)
+
+        # main enable widget
+        def visible_checks_sensitive(checkbox, visible_checkboxs):
+            for check in visible_checkboxs:
+                check.set_sensitive(checkbox.get_active())
+
+        enable_widget = super(Extension, self).get_configuration_widget()[1]
+        enable_widget.connect('toggled', visible_checks_sensitive,
+            (love_checkbox, ban_checkbox))
+
+        # build all the widget
+        widget = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        widget.pack_start(enable_widget, False, False, 0)
+
+        buttons_box = Gtk.Box(spacing=5)
+        buttons_box.pack_start(love_checkbox, False, False, 0)
+        buttons_box.pack_start(ban_checkbox, False, False, 0)
+
+        widget.pack_start(buttons_box, False, False, 0)
+
+        return _('General'), widget
 
     def playing_changed(self, *args):
         '''
