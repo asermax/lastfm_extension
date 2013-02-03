@@ -25,4 +25,6 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
-/settings.conf
+
+# no need to share my personal settings
+settings.conf
