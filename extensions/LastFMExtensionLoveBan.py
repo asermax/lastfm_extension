@@ -73,6 +73,14 @@ class Extension(LastFMExtensionWithPlayer):
         '''
         return UI_STR
 
+    @LastFMExtensionWithPlayer.enabled.getter
+    def enabled(self):
+        return True
+
+    @LastFMExtensionWithPlayer.enabled.setter
+    def enabled(self, enabled):  # @DuplicatedSignature
+        pass
+
     @property
     def love_visible(self):
         if not self.settings.has_option(LOVE_VISIBLE):
@@ -204,18 +212,12 @@ class Extension(LastFMExtensionWithPlayer):
             tooltip_text=_('Show Ban button'))
         ban_checkbox.connect('toggled', ban_visible_callback)
 
-        # main enable widget
-        def visible_checks_sensitive(checkbox, visible_checkboxs):
-            for check in visible_checkboxs:
-                check.set_sensitive(checkbox.get_active())
-
-        enable_widget = super(Extension, self).get_configuration_widget()[1]
-        enable_widget.connect('toggled', visible_checks_sensitive,
-            (love_checkbox, ban_checkbox))
-
         # build all the widget
+        title = Gtk.Label(xalign=0)
+        title.set_markup('<b>%s</b>' % _('Enable buttons:'))
+
         widget = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        widget.pack_start(enable_widget, False, False, 0)
+        widget.pack_start(title, False, False, 0)
 
         buttons_box = Gtk.Box(spacing=5)
         buttons_box.pack_start(love_checkbox, False, False, 0)
