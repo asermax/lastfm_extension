@@ -95,6 +95,15 @@ def notify(title, text):
     # show the notification
     notification.show()
 
+def bind_properties(object1, object2, property1_name, property2_name=None):
+    if not property2_name:
+        property2_name = property1_name
+
+    def update_object2(object1, *args):
+        setattr(object2.props, property2_name,
+            getattr(object1.props, property1_name))
+
+    return object1.connect('notify::%s' % property1_name, update_object2)
 
 class Settings(SafeConfigParser, object):
 
