@@ -196,6 +196,13 @@ class Extension(LastFMExtensionWithPlayer):
         del self.action_ban
 
     def get_configuration_widget(self):
+        '''
+        Returns a GTK widget to be used as a configuration interface for the
+        extension on the plugin's preferences dialog. Every extension is
+        responsible of connecting the correspondent signals and managing them
+        to configure itself. By default, this methods returns a checkbox that
+        allows the user to enable/disable the extension.
+        '''
         # love visible checkbox
         def love_visible_callback(checkbox):
             self.love_visible = checkbox.get_active()
