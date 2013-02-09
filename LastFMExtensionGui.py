@@ -110,7 +110,7 @@ class ConfigDialog(GObject.Object, PeasGtk.Configurable):
 
             dialog.append_page(extension_box, label)
 
-        extension_box.pack_end(widget, False, True, 0)
+        extension_box.pack_start(widget, False, True, 0)
 
     def _toggle(self, checkbutton, key):
         self.settings[key] = checkbutton.get_active()
