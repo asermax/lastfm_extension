@@ -4,17 +4,17 @@ lastfm_extension - Rhythmbox&#39;s LastFM Extension Plugin
 This plugin adds a bunch of new exciting features making of use of the great services provided by [LastFM](http://http://www.last.fm/)
 
 For instance:
-* Add the love and ban* buttons to your Rhythmbox toolbar again! \*
+* Add the love and ban* buttons to your Rhythmbox toolbar again! ** \* **
 * Playcount synchronization, in batch or per-play. (It can only retrieve the playcount from LastFM, not change it)
 * Loved track synchronization. (It will add 5 stars to the current track if it's currently marked as loved on your account)
-* Fingerprint your songs and match them against the Last.fm database! \*\*
+* Fingerprint your songs and match them against the Last.fm database! ** \*\* **
 
 **Note:** you need to be logged into your LastFM account for this features to work. Even if they are activated, they won't take effect until you log in.
 
-**\***Whenever you love a track, it will also be marked with 5 stars on the player, and whenever you ban a track, it's ranking will be reseted to 0. I can't assure what will happen if you ban an already loved track (or viceversa), since for some reason LastFM allows you to love and ban a track at the same time.
+** \* **Whenever you love a track, it will also be marked with 5 stars on the player, and whenever you ban a track, it's ranking will be reseted to 0. I can't assure what will happen if you ban an already loved track (or viceversa), since for some reason LastFM allows you to love and ban a track at the same time.
 It currently doesn't support Unloving or Unbaning tracks (the LastFM API haven't implemented this feature yet).
 
-**\*\***Initialy, this extension can retrieve the title and artist name of your tracks, but you can also fetch extra info (as it's album name, track number, realese year, playcount, rating and genre) by checking the "Fetch extra info" checkbox (this will be done asynchronously in the background, once the info is fetched, your track will be updated).
+** \*\* **Initialy, this extension can retrieve the title and artist name of your tracks, but you can also fetch extra info (as it's album name, track number, realese year, playcount, rating and genre) by checking the "Fetch extra info" checkbox (this will be done asynchronously in the background, once the info is fetched, your track will be updated).
 
 Creating new Extensions
 -----------------------
