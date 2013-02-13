@@ -38,8 +38,6 @@ class Extension(LastFMExtensionWithPlayer):
         '''
         super(Extension, self).__init__(plugin, settings)
 
-        self._full_sync_man = FullPlaycountSyncManager(self.network, self.db,
-            plugin.shell.props.library_source.props.base_query_model)
         self.order = 2
 
     @property
@@ -55,6 +53,12 @@ class Extension(LastFMExtensionWithPlayer):
         Returns a description for the extensions. Read only property.
         '''
         return DESCRIPTION
+
+    def initialise(self, plugin):
+        super(Extension, self).initialise(plugin)
+
+        self._full_sync_man = FullPlaycountSyncManager(self.network, self.db,
+            plugin.shell.props.library_source.props.base_query_model)
 
     def get_configuration_widget(self):
         '''
