@@ -38,6 +38,8 @@ class Extension(LastFMExtensionWithPlayer):
         '''
         super(Extension, self).__init__(plugin, settings)
 
+        self._full_sync_man = None
+        self._plugin = plugin
         self.order = 2
 
     @property
@@ -54,12 +56,6 @@ class Extension(LastFMExtensionWithPlayer):
         '''
         return DESCRIPTION
 
-    def initialise(self, plugin):
-        super(Extension, self).initialise(plugin)
-
-        self._full_sync_man = FullPlaycountSyncManager(self.network, self.db,
-            plugin.shell.props.library_source.props.base_query_model)
-
     def get_configuration_widget(self):
         '''
         Returns a GTK widget to be used as a configuration interface for the
@@ -68,6 +64,11 @@ class Extension(LastFMExtensionWithPlayer):
         to configure itself. By default, this methods returns a checkbox that
         allows the user to enable/disable the extension.
         '''
+        if not self._full_sync_man and self._plugin.network:
+            self._full_sync_man = FullPlaycountSyncManager(
+                self._plugin.network, self.db,
+                self._plugin.shell.props.library_source.props.base_query_model)
+
         enable_widget = super(Extension, self).get_configuration_widget()[1]
         enable_widget.set_label(_('Enable per-play sync'))
         enable_widget.set_margin_left(25)
@@ -81,7 +82,8 @@ class Extension(LastFMExtensionWithPlayer):
         widget.pack_start(enable_widget, False, False, 0)
 
         # add the full sync widtet
-        self._full_sync_man.add_to_widget(widget)
+        if self._full_sync_man:
+            self._full_sync_man.add_to_widget(widget)
 
         return _('Sync'), widget
 

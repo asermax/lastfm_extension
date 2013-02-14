@@ -73,11 +73,11 @@ class Extension(LastFMExtensionWithPlayer):
         '''
         return UI_STR
 
-    @LastFMExtensionWithPlayer.enabled.getter
+    @property
     def enabled(self):
         return True
 
-    @LastFMExtensionWithPlayer.enabled.setter
+    @enabled.setter
     def enabled(self, enabled):  # @DuplicatedSignature
         pass
 

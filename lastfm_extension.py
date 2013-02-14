@@ -405,6 +405,8 @@ class LastFMExtensionPlugin (GObject.Object, Peas.Activatable):
     def __init__(self):
         GObject.Object.__init__(self)
 
+        self.network = None
+
     @property
     def connected(self):
         if not self.settings.has_option(Keys.CONNECTED):
