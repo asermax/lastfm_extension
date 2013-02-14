@@ -38,8 +38,12 @@ class Extension(LastFMExtensionWithPlayer):
         '''
         super(Extension, self).__init__(plugin, settings)
 
-        self._full_sync_man = None
-        self._plugin = plugin
+        self._full_sync_man = FullPlaycountSyncManager(self.db,
+            plugin.shell.props.library_source.props.base_query_model)
+
+        if plugin.network:
+            self._full_sync_man.network = plugin.network
+
         self.order = 2
 
     @property
@@ -56,6 +60,11 @@ class Extension(LastFMExtensionWithPlayer):
         '''
         return DESCRIPTION
 
+    def connection_changed(self, connected, plugin):
+        super(Extension, self).connection_changed(connected, plugin)
+
+        self._full_sync_man.network = plugin.network if connected else None
+
     def get_configuration_widget(self):
         '''
         Returns a GTK widget to be used as a configuration interface for the
@@ -64,11 +73,6 @@ class Extension(LastFMExtensionWithPlayer):
         to configure itself. By default, this methods returns a checkbox that
         allows the user to enable/disable the extension.
         '''
-        if not self._full_sync_man and self._plugin.network:
-            self._full_sync_man = FullPlaycountSyncManager(
-                self._plugin.network, self.db,
-                self._plugin.shell.props.library_source.props.base_query_model)
-
         enable_widget = super(Extension, self).get_configuration_widget()[1]
         enable_widget.set_label(_('Enable per-play sync'))
         enable_widget.set_margin_left(25)
@@ -82,8 +86,7 @@ class Extension(LastFMExtensionWithPlayer):
         widget.pack_start(enable_widget, False, False, 0)
 
         # add the full sync widtet
-        if self._full_sync_man:
-            self._full_sync_man.add_to_widget(widget)
+        self._full_sync_man.add_to_widget(widget)
 
         return _('Sync'), widget
 
@@ -205,27 +208,39 @@ class FullPlaycountSync(GObject.Object):
 
 
 class FullPlaycountSyncManager(object):
-    def __init__(self, network, db, query_model):
-        self._network = network
+    def __init__(self, db, query_model):
+        self._network = None
         self._db = db
         self._query_model = query_model
         self._full_sync = None
-        self._box = None
+        self._start_widget = None
+        self._stop_widget = None
+
+    @property
+    def network(self):
+        return self._network
+
+    @network.setter
+    def network(self, network):
+        self._network = network
+
+        if self._start_widget:
+            idle_add(self._start_widget.set_sensitive, network is not None)
 
     def _init_widgets(self, box):
         # start widget
-        self.start_widget = Gtk.Button(label=_('Do a full sync'),
+        self._start_widget = Gtk.Button(label=_('Do a full sync'),
             margin_left=25)
 
         # stop widget
-        self.stop_widget = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
+        self._stop_widget = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
             margin_left=25)
 
         progress_bar = Gtk.ProgressBar()
-        self.stop_widget.pack_start(progress_bar, False, False, 0)
+        self._stop_widget.pack_start(progress_bar, False, False, 0)
 
         stop_button = Gtk.Button(label=_('Stop'), margin_left=5)
-        self.stop_widget.pack_start(stop_button, False, False, 0)
+        self._stop_widget.pack_start(stop_button, False, False, 0)
 
         # callbacks for widgets
         def do_full_sync(start_button):
@@ -233,19 +248,19 @@ class FullPlaycountSyncManager(object):
             self._wire_sync_progress(progress_bar)
 
             # hide this button and show the other
-            box.remove(self.start_widget)
-            box.pack_start(self.stop_widget, False, False, 0)
+            box.remove(self._start_widget)
+            box.pack_start(self._stop_widget, False, False, 0)
             box.show_all()
 
-        self.start_widget.connect('clicked', do_full_sync)
+        self._start_widget.connect('clicked', do_full_sync)
 
         def cancel_full_sync(stop_button):
             # cancel the sync
             self._full_sync.cancel()
 
             # hide this widget and show the start button
-            box.remove(self.stop_widget)
-            box.pack_start(self.start_widget, False, False, 0)
+            box.remove(self._stop_widget)
+            box.pack_start(self._start_widget, False, False, 0)
             box.show_all()
 
         stop_button.connect('clicked', cancel_full_sync)
@@ -255,9 +270,12 @@ class FullPlaycountSyncManager(object):
         self._init_widgets(box)
 
         if self._full_sync:
-            box.pack_start(self.stop_widget, False, False, 0)
+            box.pack_start(self._stop_widget, False, False, 0)
         else:
-            box.pack_start(self.start_widget, False, False, 0)
+            box.pack_start(self._start_widget, False, False, 0)
+
+            if not self.network:
+                self._start_widget.set_sensitive(False)
 
     def _wire_sync_progress(self, progress_bar):
         # connect the progress bar progress
