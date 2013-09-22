@@ -64,7 +64,7 @@ MATCHER="matcher.py"
 if [[ $LOCAL == true ]]
 then
     echo "Installing plugin locally"
-    PLUGIN_PATH="/home/${USER}/.local/share/rhythmbox/plugins/lastfm_extension/"
+    PLUGIN_PATH="${HOME}/.local/share/rhythmbox/plugins/lastfm_extension/"
     
     #build the dirs
     mkdir -p $PLUGIN_PATH
